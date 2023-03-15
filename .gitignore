@@ -1,0 +1,58 @@
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.pyc
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.rar
+#*.tar
+*.zip
+*.restore
+
+# Logs and databases #
+######################
+*.log
+*.sqlite
+*.db
+*.bkp
+*.bak
+
+# OS generated files #
+######################
+.DS_Store
+ehthumbs.db
+Icon
+Thumbs.db
+.tmtags
+.idea
+tags
+vendor.tags
+tmtagsHistory
+*.sublime-project
+*.sublime-workspace
+.bundle
+build
+dist
+*.egg-info
+
+# Other sources #
+#################
+sources
+sources/*
+
+# Config Files #
+#################
+config.yml

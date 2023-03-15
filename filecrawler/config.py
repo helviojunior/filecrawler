@@ -1,0 +1,275 @@
+#!/usr/bin/python3
+# -*- coding: UTF-8 -*-
+import errno
+import os, sys
+import sqlite3
+from os.path import expanduser
+from pathlib import Path
+import yaml
+
+from .libs.crawlerdb import CrawlerDB
+from .util.color import Color
+from .util.logger import Logger
+from .__meta__ import __version__
+from .util.tools import Tools
+from yaml.loader import SafeLoader, FullLoader
+
+
+class Configuration(object):
+    ''' Stores configuration variables and functions for Tfilecrawler. '''
+    version = '0.0.0'
+    name = ""
+
+    initialized = False # Flag indicating config has been initialized
+    verbose = 0
+    module = None
+    cmd_line = ''
+    index_name = None
+    config_file = ''
+    db_file = ''
+    db_name = ''
+    company = []
+
+    indexed_chars = '-1'
+    includes = ['*/*']
+    excludes = [
+                   '*/~*', '*/.git/*', '*/*.svg', '*/*.png', '*/*.css', '*/*.gif',
+                   '*/*.ttf', '*/*.woff', '*/*.wof2'
+               ]
+    json_support = False
+    filename_as_id = False
+    add_filesize = True
+    remove_deleted = True
+    add_as_inner_object = False
+    store_source = False
+    index_content = True
+    attributes_support = False
+    raw_metadata = False
+    xml_support = False
+    index_folders = True
+    lang_detect = False
+    continue_on_error = True
+    ignore_above = '10M'
+    ocr = {
+        'language': 'eng',
+        'enabled': True,
+        'pdf_strategy':'ocr_and_text'
+    }
+    follow_symlinks = True
+
+    @staticmethod
+    def initialize():
+        '''
+            Sets up default initial configuration values.
+            Also sets config values based on command-line arguments.
+        '''
+
+        Configuration.version = str(__version__)
+        Configuration.name = str(__name__)
+
+        # Only initialize this class once
+        if Configuration.initialized:
+            return
+
+        Configuration.initialized = True
+
+        Configuration.verbose = 0 # Verbosity level.
+        Configuration.print_stack_traces = True
+
+        # Overwrite config values with arguments (if defined)
+        Configuration.load_from_arguments()
+
+
+    @staticmethod
+    def load_from_arguments():
+        ''' Sets configuration values based on Argument.args object '''
+        from .args import Arguments
+
+        config_check = 0
+
+        args = Arguments()
+
+        a1 = sys.argv
+        a1[0] = 'filecrawler'
+        for a in a1:
+            Configuration.cmd_line += "%s " % a
+
+        module = args.get_module()
+
+        if module is None:
+            Color.pl('{!} {R}error: missing a mandatory option, use -h help{W}\r\n')
+            exit(1)
+
+        Configuration.verbose = args.args.v
+
+        Color.pl('{+} {W}Startup parameters')
+        Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
+
+        if Configuration.verbose > 0:
+            Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)
+
+        Logger.pl('     {C}module:{O} %s{W}' % module.name)
+
+        if args.args.index_name is not None and args.args.index_name.strip(' .,') != '':
+            Configuration.index_name = Tools.clear_string(args.args.index_name).replace(',', '_').replace('.', '_')
+
+        if not Configuration.index_name:
+            Color.pl(
+                '{!} {R}error: index name {O}%s{R} is not valid.{W}\r\n' % args.args.index_name)
+            exit(1)
+
+        if not module.load_from_arguments(args.args):
+            Configuration.mandatory()
+
+        Configuration.module = module
+
+        if module.check_database:
+            Configuration.module.open_db(args=args.args, check=True)
+
+        if args.args.config_file is None or args.args.config_file.strip() == '':
+            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
+                args.args.config_file))
+            exit(1)
+
+        if os.path.exists(args.args.config_file) and not os.path.isfile(args.args.config_file):
+            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
+                args.args.config_file))
+            exit(1)
+
+        Configuration.config_file = args.args.config_file
+
+        try:
+
+            if not os.path.isfile(Configuration.config_file):
+                Logger.pl(
+                    '{!} {W}The configuration file does not exists.'
+                )
+                Logger.p(
+                    '{!} {W}Do you want create an default file and continue? (Y/n): {W}')
+                c = input()
+                if c.lower() == 'n':
+                    exit(0)
+                    print(' ')
+
+                sample_config = {
+                        'general': {
+                            'indexed_chars': Configuration.indexed_chars,
+                            'includes': Configuration.includes,
+                            'excludes': Configuration.excludes,
+                            'json_support': Configuration.json_support,
+                            'filename_as_id': Configuration.filename_as_id,
+                            'add_filesize': Configuration.add_filesize,
+                            'remove_deleted': Configuration.remove_deleted,
+                            'add_as_inner_object': Configuration.add_as_inner_object,
+                            'store_source': Configuration.store_source,
+                            'index_content': Configuration.index_content,
+                            'attributes_support': Configuration.attributes_support,
+                            'raw_metadata': Configuration.raw_metadata,
+                            'xml_support': Configuration.xml_support,
+                            'index_folders': Configuration.index_folders,
+                            'lang_detect': Configuration.lang_detect,
+                            'continue_on_error': Configuration.continue_on_error,
+                            'ignore_above': Configuration.ignore_above,
+                            'ocr': Configuration.ocr,
+                            'follow_symlinks': Configuration.follow_symlinks
+                        }
+                    }
+
+                sample_config.update(module.get_config_sample())
+
+                with open(Configuration.config_file, 'w') as f:
+                    yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
+
+            with open(Configuration.config_file, 'r') as f:
+                data = dict(yaml.load(f, Loader=yaml.FullLoader))
+                if data is not None and data.get('general', None) is not None:
+                    general = data.get('general', {})
+                    #print(data)
+
+                    Configuration.indexed_chars = general.get('indexed_chars', Configuration.indexed_chars)
+                    Configuration.includes = general.get('includes', Configuration.includes)
+                    Configuration.excludes = general.get('excludes', Configuration.excludes)
+                    Configuration.json_support = general.get('json_support', Configuration.json_support)
+                    Configuration.filename_as_id = general.get('filename_as_id', Configuration.filename_as_id)
+                    Configuration.add_filesize = general.get('add_filesize', Configuration.add_filesize)
+                    Configuration.remove_deleted = general.get('remove_deleted', Configuration.remove_deleted)
+                    Configuration.add_as_inner_object = general.get('add_as_inner_object', Configuration.add_as_inner_object)
+                    Configuration.store_source = general.get('store_source', Configuration.store_source)
+                    Configuration.attributes_support = general.get('attributes_support', Configuration.attributes_support)
+                    Configuration.raw_metadata = general.get('raw_metadata', Configuration.raw_metadata)
+                    Configuration.xml_support = general.get('xml_support', Configuration.xml_support)
+                    Configuration.index_folders = general.get('index_folders', Configuration.index_folders)
+                    Configuration.lang_detect = general.get('lang_detect', Configuration.lang_detect)
+                    Configuration.continue_on_error = general.get('continue_on_error', Configuration.continue_on_error)
+                    Configuration.ignore_above = general.get('ignore_above', Configuration.ignore_above)
+                    Configuration.ocr = general.get('ocr', Configuration.ocr)
+                    Configuration.follow_symlinks = general.get('follow_symlinks', Configuration.follow_symlinks)
+
+                if not module.load_config(data):
+                    Configuration.mandatory()
+
+        except IOError as x:
+            if x.errno == errno.EACCES:
+                Color.pl('{!} {R}error: could not open {G}%s {O}permission denied{R}{W}\r\n' % Configuration.config_file)
+                sys.exit(1)
+            elif x.errno == errno.EISDIR:
+                Color.pl('{!} {R}error: could not open {G}%s {O}it is an directory{R}{W}\r\n' % Configuration.config_file)
+                sys.exit(1)
+            else:
+                Color.pl('{!} {R}error: could not open {G}%s{W}\r\n' % Configuration.config_file)
+                sys.exit(1)
+
+        iname = Tools.sanitize_filename(Configuration.index_name)
+        db_name = Path(expanduser(f'~/.filecrawler/{iname}/indexer.db'))
+        if args.args.db_file.strip() != '':
+            db_name = Path(args.args.db_file.strip())
+
+        if not db_name.resolve().parent.exists():
+            db_name.resolve().parent.mkdir(parents=True)
+
+        Configuration.db_name = str(db_name.resolve())
+
+        Logger.pl('     {C}database file:{O} %s{W}' % Configuration.db_name)
+
+        try:
+            with(CrawlerDB(auto_create=True, db_name=Configuration.db_name)) as db:
+                pass
+        except sqlite3.OperationalError as e:
+            print(e)
+            Logger.pl(
+                '{!} {R}error: the database file exists but is not an SQLite or table structure was not created.{W}\r\n')
+            exit(1)
+        except Exception as e:
+            raise e
+
+        print('  ')
+
+    @staticmethod
+    def get_banner():
+            Configuration.version = str(__version__)
+
+            return '''\
+
+{G}filecrawler {D}v%s{W}{G} by Helvio Junior{W}
+{W}{D}Active Directory, BloodHound, NTDS hashes and Password Cracks correlation tool{W}
+{C}{D}https://github.com/helviojunior/filecrawler{W}
+    ''' % Configuration.version
+
+
+    @staticmethod
+    def dump():
+        ''' (Colorful) string representation of the configuration '''
+        from .util.color import Color
+
+        max_len = 20
+        for key in Configuration.__dict__.keys():
+            max_len = max(max_len, len(key))
+
+        result  = Color.s('{W}%s  Value{W}\n' % 'Configuration Key'.ljust(max_len))
+        result += Color.s('{W}%s------------------{W}\n' % ('-' * max_len))
+
+        for (key,val) in sorted(Configuration.__dict__.items()):
+            if key.startswith('__') or type(val) == staticmethod or val is None:
+                continue
+            result += Color.s("{G}%s {W} {C}%s{W}\n" % (key.ljust(max_len),val))
+        return result

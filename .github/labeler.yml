@@ -1,0 +1,20 @@
+# Rules to label Pull Requests
+version: 1
+labels:
+  - label: "Library"
+    files:
+      - "filecrawler/.*"
+  - label: "CI/CD & Tests"
+    files:
+      - "tests/.*"
+      - "tox.ini"
+      - "Dockerfile"
+      - ".github/.*"
+  - label: "Setup"
+    files:
+      - "setup.py"
+      - "filecrawler.egg-info/requirements*.txt"
+  - label: "Docs"
+    files:
+      - "*.md"
+      - "LICENSE"
