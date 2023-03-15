@@ -20,7 +20,7 @@ class Crawler(CrawlerBase):
     index_id = -1
 
     def __init__(self):
-        super().__init__('index', 'Crawler folder and files')
+        super().__init__('crawler', 'Crawler folder and files')
 
     def add_flags(self, flags: _ArgumentGroup):
         pass
