@@ -12,4 +12,5 @@ py7zr>=0.20.4
 rarfile>=4.0
 validators>=0.20.0
 elasticsearch>=8.6.2
-pyOpenSSL
+pyOpenSSL>=23.0.0
+xmltodict>=0.13.0
