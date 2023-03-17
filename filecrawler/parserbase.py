@@ -18,6 +18,7 @@ class ParserBase(object):
     description = ''
     verbose = 0
     extensions = []
+    mime_types = []
 
     #Static
     _parsers = {}
@@ -28,23 +29,35 @@ class ParserBase(object):
         pass
 
     @classmethod
-    def get_parser_instance(cls, file_extension: str):
+    def get_parser_instance(cls, file_extension: str, mime: str):
         from filecrawler.parsers.default import DefaultParser
 
-        if file_extension is None:
+        if file_extension is None and mime is None:
             return DefaultParser()
 
-        file_extension = file_extension.strip('. ')
-        if file_extension == '':
-            return DefaultParser()
+        if file_extension is None:
+            file_extension = ''
+        else:
+            file_extension = file_extension.strip()
+
+        if mime is None:
+            mime = ''
+        else:
+            mime = mime.strip()
 
         cls.list_parsers()
         return next(
             (
                 p.create_instance() for k, p in ParserBase._parsers.items()
-                if p.is_valid(file_extension)
+                if mime != '' and p.is_valid(extension='', mime=mime, mime_only=True)
             )
-            , DefaultParser()
+            , next(
+                (
+                    p.create_instance() for k, p in ParserBase._parsers.items()
+                    if file_extension != '' and p.is_valid(extension=file_extension)
+                )
+                , DefaultParser()
+            )
         )
 
     @classmethod
@@ -90,7 +103,8 @@ class ParserBase(object):
                     parser=str(iclass.__module__),
                     qualname=str(iclass.__qualname__),
                     class_name=iclass,
-                    extensions=t.extensions
+                    extensions=t.extensions,
+                    mime_types=t.mime_types
                 )
 
             ParserBase._parsers = parsers

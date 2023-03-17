@@ -43,6 +43,10 @@ class Tools:
             return True
         elif s == ",":
             return True
+        elif s == "-":
+            return True
+        elif s == "_":
+            return True
         else:
             return False
 
@@ -177,3 +181,26 @@ class Tools:
         else:
             f = magic.Magic(mime=True)
         return f.from_buffer(open(file_path, "rb").read(2048)).lower()
+
+    @staticmethod
+    def json_serial(obj):
+        """JSON serializer for objects not serializable by default json code"""
+
+        if isinstance(obj, (datetime.datetime, datetime.date)):
+            return obj.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+        raise TypeError("Type %s not serializable" % type(obj))
+
+    @staticmethod
+    def print_error(error: Exception):
+        from filecrawler.config import Configuration
+        Color.pl('\n{!} {R}Error:{O} %s{W}' % str(error))
+
+        if Configuration.verbose > 0 or True:
+            Color.pl('\n{!} {O}Full stack trace below')
+            from traceback import format_exc
+            Color.p('\n{!}    ')
+            err = format_exc().strip()
+            err = err.replace('\n', '\n{W}{!} {W}   ')
+            err = err.replace('  File', '{W}{D}File')
+            err = err.replace('  Exception: ', '{R}Exception: {O}')
+            Color.pl(err)

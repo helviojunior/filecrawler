@@ -64,7 +64,7 @@ class Worker:
                 continue
 
             try:
-                self.callback(entry=entry, thread_callback_data=tcb, **kwargs)
+                self.callback(worker=self, entry=entry, thread_callback_data=tcb, **kwargs)
             finally:
                 self.__count += 1
                 self.q.task_done()

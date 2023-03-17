@@ -34,6 +34,7 @@ class Configuration(object):
     path = ''
     company = []
     tasks = 5
+    tasks_integrator = 2
 
     indexed_chars = '-1'
     includes = ['*/*']
@@ -123,18 +124,26 @@ class Configuration(object):
             exit(1)
 
         if args.args.tasks:
-            Configuration.tasks = args.args.tasks
+            Configuration.tasks = int(float(args.args.tasks) * 0.8)
+            Configuration.tasks_integrator = args.args.tasks - Configuration.tasks
 
         if Configuration.tasks < 1:
             Configuration.tasks = 1
 
-        if Configuration.tasks > 256:
-            Configuration.tasks = 256
+        if Configuration.tasks > 100:
+            Configuration.tasks = 100
+
+        if Configuration.tasks_integrator < 1:
+            Configuration.tasks_integrator = 1
+
+        if Configuration.tasks_integrator > 50:
+            Configuration.tasks_integrator = 50
 
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
         Logger.pl('     {C}java version:{O} %s{W}' % java_ver)
-        Logger.pl('     {C}tasks:{O} %s{W}' % Configuration.tasks)
+        Logger.pl('     {C}worker tasks:{O} %s{W}' % Configuration.tasks)
+        Logger.pl('     {C}integrator tasks:{O} %s{W}' % Configuration.tasks_integrator)
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)

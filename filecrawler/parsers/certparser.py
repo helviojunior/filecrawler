@@ -13,11 +13,6 @@ class CertificateParser(ParserBase):
     extensions = ['p8', 'key', 'p10', 'csr', 'cer', 'crl', 'p7c', 'crt', 'der', 'pem',
                   'p12', 'pfx', 'p7b', 'spc', 'p7r']
 
-    _parsable_mime = ['application/x-x509-ca-cert', 'application/x-x509-user-cert',
-                     'application/x-pkcs7-crl', 'application/pkcs7-mime', 'application/pkix-crl',
-                     'application/pkix-cert', 'application/pkcs10', 'application/octet-stream'
-                     ]
-
     def __init__(self):
         super().__init__('Certificate Parser', 'Parser for Certificate files')
 
@@ -36,23 +31,22 @@ class CertificateParser(ParserBase):
 
         data = {'content': self.get_readable_data(file)}
 
-        if file.mime in self._parsable_mime:
-            bData = file.path.read_bytes()
-            cert = None
+        bData = file.path.read_bytes()
+        cert = None
+        try:
+            cert = crypto.load_certificate(crypto.FILETYPE_PEM, bData)
+        except:
             try:
-                cert = crypto.load_certificate(crypto.FILETYPE_PEM, bData)
+                cert = crypto.load_certificate(crypto.FILETYPE_ASN1, bData)
             except:
-                try:
-                    cert = crypto.load_certificate(crypto.FILETYPE_ASN1, bData)
-                except:
-                    pass
+                pass
 
-            if cert is not None:
-                dmp = crypto.dump_certificate(crypto.FILETYPE_TEXT, cert).decode('utf-8')
-                dmp += '\n'
-                dmp += crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8')
+        if cert is not None:
+            dmp = crypto.dump_certificate(crypto.FILETYPE_TEXT, cert).decode('utf-8')
+            dmp += '\n'
+            dmp += crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8')
 
-                data['content'] = dmp
+            data['content'] = dmp
 
         return data
 

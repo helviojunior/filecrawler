@@ -361,6 +361,8 @@ class Database(object):
                 indexing_date datetime NOT NULL,
                 path_real TEXT NOT NULL,
                 path_virtual TEXT NOT NULL,
+                data TEXT NULL,
+                integrated INTEGER NOT NULL DEFAULT (0),
                 FOREIGN KEY(index_id) REFERENCES [index](index_id),
                 UNIQUE(index_id, fingerprint)
             );

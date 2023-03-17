@@ -235,7 +235,19 @@ class CrawlerDB(Database):
 
     def insert_or_get_file(self, **data) -> Optional[dict]:
 
-        (inserted, updated) = self.insert_update_one_exclude('file_index', exclude_on_update=['indexing_date'], **data)
+        (inserted, updated) = self.insert_update_one_exclude('file_index',
+                                                             exclude_on_update=[
+                                                                 'indexing_date',
+                                                                 'created',
+                                                                 'last_accessed',
+                                                                 'last_modified',
+                                                                 'filename',
+                                                                 'extension',
+                                                                 'integrated',
+                                                                 'data',
+                                                                 'index_id'
+                                                             ],
+                                                             **data)
 
         dt = self.select_first('file_index', fingerprint=data['fingerprint'])
         if dt is None:

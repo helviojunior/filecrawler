@@ -20,7 +20,7 @@ class ContainerFile(object):
         dict(name='bz2', extensions=['bz2'], mime=['application/x-bzip2']),
         dict(name='gz', extensions=['gz'], mime=['application/gzip']),
         dict(name='7z', extensions=['7z'], mime=['application/x-7z-compressed']),
-        dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
+        #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
         dict(name='jar', extensions=['jar'], mime=[])
     ]
@@ -77,35 +77,37 @@ class ContainerFile(object):
         if extractor_fnc is None:
             return None
 
-        if extractor_fnc():
+        if extractor_fnc() and os.path.isdir(self._temp_path):
             return Path(self._temp_path)
 
         return None
 
     def extract_7z(self) -> bool:
         from py7zr import SevenZipFile
-        with SevenZipFile(str(self._file), 'r') as zObject:
+        with SevenZipFile(str(self._file.path), 'r') as zObject:
             zObject.extractall(path=self._temp_path)
 
         return True
 
     def extract_zip(self) -> bool:
         from zipfile import ZipFile
-        with ZipFile(str(self._file), 'r') as zObject:
+        with ZipFile(str(self._file.path), 'r') as zObject:
             zObject.extractall(self._temp_path)
 
         return True
 
     def extract_rar(self) -> bool:
         from rarfile import RarFile
-        with RarFile(str(self._file), 'r') as rObject:
+        with RarFile(str(self._file.path), 'r') as rObject:
             rObject.extractall(path=self._temp_path)
 
         return True
 
     def extract_tar(self) -> bool:
+        return False
+
         import tarfile
-        with tarfile.open(str(self._file), 'r') as tObject:
+        with tarfile.open(str(self._file.path), 'r') as tObject:
             tObject.extractall(self._temp_path)
         return True
 
@@ -118,16 +120,19 @@ class ContainerFile(object):
 
         self.create_folder()
 
-        import gzip
-        nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
-        with gzip.open(str(self._file), 'rb') as entrada:
-            with open(nf, 'wb') as saida:
-                shutil.copyfileobj(entrada, saida)
+        try:
+            import gzip
+            nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
+            with gzip.open(str(self._file.path), 'rb') as entrada:
+                with open(nf, 'wb') as saida:
+                    shutil.copyfileobj(entrada, saida)
 
-        #Check if output file is an Tar file
-        if Tools.get_mime(nf) == 'application/x-tar':
-            os.unlink(nf)
-            return self.extract_tar()
+            #Check if output file is an Tar file
+            if Tools.get_mime(nf) == 'application/x-tar':
+                os.unlink(nf)
+                return self.extract_tar()
+        except:
+            return False
 
         return True
 
@@ -138,7 +143,7 @@ class ContainerFile(object):
         self.create_folder()
         import bz2
         nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
-        with bz2.open(str(self._file), mode='rb') as entrada:
+        with bz2.open(str(self._file.path), mode='rb') as entrada:
             with open(nf, 'wb') as saida:
                 shutil.copyfileobj(entrada, saida)
 
@@ -151,7 +156,7 @@ class ContainerFile(object):
         from filecrawler.config import Configuration
 
         (retcode, _, _) = Process.call(
-            f'java -jar apktool_2.7.0.jar -f d "{self._file}" -o "{self._temp_path}"',
+            f'java -jar apktool_2.7.0.jar -f d "{self._file.path}" -o "{self._temp_path}"',
             cwd=os.path.join(Configuration.lib_path, 'bin'))
 
         return retcode == 0

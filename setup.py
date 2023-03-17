@@ -37,13 +37,12 @@ with open(f"{here}/README.md", "r", encoding="utf-8") as f:
     readme = f.read()
 
 bin_files = []
-if os.path.isdir(f"{here}/libs"):
+if os.path.isdir(f"{here}/filecrawler/libs"):
     bin_files = [
         os.path.join(dp, f).replace(here.strip('/') + '/', '').lstrip('/. ')
-        for dp, dn, filenames in os.walk(f"{here}/libs") for f in filenames
+        for dp, dn, filenames in os.walk(f"{here}/filecrawler/libs") for f in filenames
         if '.py' not in f.lower()
     ]
-
 
 #If you use both include_package_data and package_data, files specified with package_data will not be automatically included in sdists; you must instead list them in your MANIFEST.in
 
