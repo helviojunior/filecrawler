@@ -6,8 +6,10 @@ import sqlite3
 from os.path import expanduser
 from pathlib import Path
 import yaml
+import re
 
 from .libs.crawlerdb import CrawlerDB
+from .parserbase import ParserBase
 from .util.color import Color
 from .util.logger import Logger
 from .__meta__ import __version__
@@ -24,10 +26,12 @@ class Configuration(object):
     verbose = 0
     module = None
     cmd_line = ''
+    lib_path = ''
     index_name = None
     config_file = ''
     db_file = ''
     db_name = ''
+    path = ''
     company = []
 
     indexed_chars = '-1'
@@ -46,10 +50,10 @@ class Configuration(object):
     attributes_support = False
     raw_metadata = False
     xml_support = False
-    index_folders = True
     lang_detect = False
     continue_on_error = True
     ignore_above = '10M'
+    max_size = -1
     ocr = {
         'language': 'eng',
         'enabled': True,
@@ -66,6 +70,8 @@ class Configuration(object):
 
         Configuration.version = str(__version__)
         Configuration.name = str(__name__)
+
+        Configuration.lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'libs')
 
         # Only initialize this class once
         if Configuration.initialized:
@@ -95,6 +101,7 @@ class Configuration(object):
             Configuration.cmd_line += "%s " % a
 
         module = args.get_module()
+        ParserBase.list_parsers()
 
         if module is None:
             Color.pl('{!} {R}error: missing a mandatory option, use -h help{W}\r\n')
@@ -102,8 +109,23 @@ class Configuration(object):
 
         Configuration.verbose = args.args.v
 
+        java_ver = Tools.get_java_version()
+        if java_ver is None:
+            Color.pl('{!} {R}error: Java Runtime not found{W}\r\n')
+            exit(1)
+
+        try:
+            Tools.get_mime(__file__)
+        except ImportError:
+            Color.pl('{!} {R}error: failed to find libmagic. Check your installation{W}\r\n')
+            Color.pl('     {O}Linux: apt-get install libmagic-dev{W}')
+            Color.pl('     {O}MacOS: brew install libmagic{W}')
+            Color.pl('     {O}Windows: report bug{W}')
+            exit(1)
+
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
+        Logger.pl('     {C}java version:{O} %s{W}' % java_ver)
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)
@@ -117,6 +139,13 @@ class Configuration(object):
             Color.pl(
                 '{!} {R}error: index name {O}%s{R} is not valid.{W}\r\n' % args.args.index_name)
             exit(1)
+
+        if args.args.path is None or args.args.path.strip() == '' or not os.listdir(args.args.path):
+            Color.pl(
+                '{!} {R}error: path {O}%s{R} is not valid.{W}\r\n' % args.args.path)
+            exit(1)
+
+        Configuration.path = str(Path(args.args.path).resolve())
 
         if not module.load_from_arguments(args.args):
             Configuration.mandatory()
@@ -166,7 +195,6 @@ class Configuration(object):
                             'attributes_support': Configuration.attributes_support,
                             'raw_metadata': Configuration.raw_metadata,
                             'xml_support': Configuration.xml_support,
-                            'index_folders': Configuration.index_folders,
                             'lang_detect': Configuration.lang_detect,
                             'continue_on_error': Configuration.continue_on_error,
                             'ignore_above': Configuration.ignore_above,
@@ -186,7 +214,7 @@ class Configuration(object):
                     general = data.get('general', {})
                     #print(data)
 
-                    Configuration.indexed_chars = general.get('indexed_chars', Configuration.indexed_chars)
+                    Configuration.indexed_chars = int(general.get('indexed_chars', Configuration.indexed_chars))
                     Configuration.includes = general.get('includes', Configuration.includes)
                     Configuration.excludes = general.get('excludes', Configuration.excludes)
                     Configuration.json_support = general.get('json_support', Configuration.json_support)
@@ -198,7 +226,6 @@ class Configuration(object):
                     Configuration.attributes_support = general.get('attributes_support', Configuration.attributes_support)
                     Configuration.raw_metadata = general.get('raw_metadata', Configuration.raw_metadata)
                     Configuration.xml_support = general.get('xml_support', Configuration.xml_support)
-                    Configuration.index_folders = general.get('index_folders', Configuration.index_folders)
                     Configuration.lang_detect = general.get('lang_detect', Configuration.lang_detect)
                     Configuration.continue_on_error = general.get('continue_on_error', Configuration.continue_on_error)
                     Configuration.ignore_above = general.get('ignore_above', Configuration.ignore_above)
@@ -219,8 +246,25 @@ class Configuration(object):
                 Color.pl('{!} {R}error: could not open {G}%s{W}\r\n' % Configuration.config_file)
                 sys.exit(1)
 
+        ia = Configuration.ignore_above.lower()
+        x = re.search(r'([0-9]+)([a-z]{0,1})', ia)
+        if x:
+            size = int(x.group(1))
+            unit = x.group(2)
+            if unit == '':
+                Configuration.max_size = size
+            elif unit == 'k':
+                Configuration.max_size = size * 1024
+            elif unit == 'm':
+                Configuration.max_size = size * 1024 * 1024
+            elif unit == 'g':
+                Configuration.max_size = size * 1024 * 1024 * 1024
+            else:
+                Color.pl('{!} {R}error: invalid ignore_above size {G}%s{W}\r\n' % Configuration.ignore_above)
+                sys.exit(1)
+
         iname = Tools.sanitize_filename(Configuration.index_name)
-        db_name = Path(expanduser(f'~/.filecrawler/{iname}/indexer.db'))
+        db_name = Path(expanduser(f'~/.filecrawler/{iname}/filecrawler.db'))
         if args.args.db_file.strip() != '':
             db_name = Path(args.args.db_file.strip())
 
@@ -241,6 +285,8 @@ class Configuration(object):
             exit(1)
         except Exception as e:
             raise e
+
+        Logger.pl('     {C}index path:{O} %s{W}' % Configuration.path)
 
         print('  ')
 

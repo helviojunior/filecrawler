@@ -36,6 +36,15 @@ with open(f"{here}/requirements.txt", "r", encoding="utf-8") as f:
 with open(f"{here}/README.md", "r", encoding="utf-8") as f:
     readme = f.read()
 
+bin_files = []
+if os.path.isdir(f"{here}/libs"):
+    bin_files = [
+        os.path.join(dp, f).replace(here.strip('/') + '/', '').lstrip('/. ')
+        for dp, dn, filenames in os.walk(f"{here}/libs") for f in filenames
+        if '.py' not in f.lower()
+    ]
+
+
 #If you use both include_package_data and package_data, files specified with package_data will not be automatically included in sdists; you must instead list them in your MANIFEST.in
 
 setup(
@@ -49,7 +58,7 @@ setup(
     url=meta["__url__"],
     packages=find_packages(),
     package_data={"": ["LICENSE"]},
-    data_files=[('', ['requirements.txt'])],
+    data_files=[('', ['requirements.txt'] + bin_files)],
     #include_package_data=True,
     python_requires=">=3.6, <4",
     install_requires=requires,

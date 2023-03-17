@@ -7,7 +7,8 @@ import string
 from argparse import _ArgumentGroup, ArgumentParser, Namespace
 from pathlib import Path
 
-from filecrawler.module import Module
+from filecrawler.libs.module import Module
+from filecrawler.libs.parser import Parser
 from filecrawler.util.color import Color
 from filecrawler.libs.crawlerdb import CrawlerDB
 from filecrawler.util.logger import Logger

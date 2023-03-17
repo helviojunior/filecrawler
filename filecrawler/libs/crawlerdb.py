@@ -7,6 +7,7 @@ import string, base64
 import json
 import hashlib
 from sqlite3 import Connection, OperationalError, IntegrityError, ProgrammingError
+from typing import Optional
 
 from filecrawler.util.color import Color
 from .database import Database
@@ -231,6 +232,18 @@ class CrawlerDB(Database):
         self.insert_update_one_exclude('index', **f)
 
         return self.select_first('index', **f).get('index_id', -1)
+
+    def insert_or_get_file(self, **data) -> Optional[dict]:
+
+        (inserted, updated) = self.insert_update_one_exclude('file_index', exclude_on_update=['indexing_date'], **data)
+
+        dt = self.select_first('file_index', fingerprint=data['fingerprint'])
+        if dt is None:
+            return None
+
+        dt.update(dict(inserted=inserted, updated=updated))
+
+        return dt
 
 
 

@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import datetime
 import os
+import platform
 import string, random, sys, re
+import subprocess
 import unicodedata
 from tabulate import _table_formats, tabulate
 
@@ -130,3 +133,42 @@ class Tools:
         while ('--' in name):
             name = name.replace('--', '-')
         return ''.join(filter(Tools.permited_char_filename, name))
+
+    @staticmethod
+    def get_java_version():
+        """Returns the string for the current version of Java installed."""
+        proc = subprocess.Popen(['java', '-version'], stderr=subprocess.PIPE)
+        ver = None
+
+        if proc.wait() == 0:
+            for line in proc.stderr.read().splitlines():
+                # E.g. java version "12.0.2" 2019-07-16
+                if isinstance(line, bytes):
+                    line = line.decode("utf-8")
+                line = line.strip()
+                ver = next(
+                    (
+                        ver[1:-1]
+                        for ver in line.split(' ')
+                        if 'version' in line and ver.startswith('"') and ver.endswith('"')
+                    ), None)
+                if ver is not None:
+                    break
+
+        return ver
+
+    @staticmethod
+    def to_datetime(epoch: [int, float]) -> datetime.datetime:
+        return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=epoch)
+
+    @staticmethod
+    def get_mime(file_path: str) -> str:
+        import magic
+        from filecrawler.config import Configuration
+
+        p = platform.system().lower()
+        if p == 'windows':
+            f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
+        else:
+            f = magic.Magic(mime=True)
+        return f.from_buffer(open(file_path, "rb").read(2048)).lower()

@@ -102,7 +102,9 @@ class Database(object):
         self.insert_update_one_exclude(table_name, [], **kwargs)
 
     @connect
-    def insert_update_one_exclude(self, conn: str, table_name: str, exclude_on_update: list = [], **kwargs):
+    def insert_update_one_exclude(self, conn: str, table_name: str, exclude_on_update: list = [], **kwargs) -> (bool, bool):
+        inserted = False
+        updated = False
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT OR IGNORE INTO [{}] ({}) VALUES ({})" \
@@ -123,8 +125,12 @@ class Database(object):
                 sql += " WHERE {}".format(f' and '.join([f'{col} = ?' for col in f_columns]))
             conn.execute(sql, tuple(u_values + f_values, ))
             conn.commit()
+            updated = True
+        else:
+            inserted = True
 
         conn.commit()
+        return inserted, updated
 
 
     @connect
@@ -344,9 +350,11 @@ class Database(object):
             CREATE TABLE IF NOT EXISTS [file_index] (
                 file_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 index_id INTEGER NOT NULL,
+                fingerprint TEXT NOT NULL,
                 filename TEXT NOT NULL,
                 file_size INTEGER,
                 extension TEXT NOT NULL,
+                mime_type TEXT NOT NULL,
                 created datetime NOT NULL,
                 last_accessed datetime NOT NULL,
                 last_modified datetime NOT NULL,
@@ -354,7 +362,7 @@ class Database(object):
                 path_real TEXT NOT NULL,
                 path_virtual TEXT NOT NULL,
                 FOREIGN KEY(index_id) REFERENCES [index](index_id),
-                UNIQUE(filename)
+                UNIQUE(index_id, fingerprint)
             );
         """)
         conn.commit()

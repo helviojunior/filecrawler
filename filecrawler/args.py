@@ -3,10 +3,9 @@
 from argparse import _ArgumentGroup, Namespace
 
 from .crawlerbase import CrawlerBase
-from .module import Module
 from .util.color import Color
 
-import argparse, sys, os
+import argparse, sys
 
 
 class Arguments(object):
@@ -87,6 +86,7 @@ class Arguments(object):
                            metavar='[folder path]',
                            type=str,
                            dest=f'path',
+                           default='',
                            help=Color.s('Folder path to be indexed'))
 
         flags.add_argument('--config',

@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-from filecrawler.util.process import Process
 import codecs
 
 try:
