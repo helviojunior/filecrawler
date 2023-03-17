@@ -1,6 +1,6 @@
-__version__ = '0.1.31'
+__version__ = '0.1.1'
 __title__ = "FileCrawler"
-__description__ = "filecrawler is a swiss army knife tool for pentesting Microsoft Active Directory (NTLM Hashes, BloodHound, NTDS and DCSync)."
+__description__ = "File Crawler index files and search credentials."
 __url__ = "https://github.com/helviojunior/filecrawler"
 __build__ = 0x63c974a8
 __author__ = "Helvio Junior  (M4v3r1ck)"
