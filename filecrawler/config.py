@@ -33,6 +33,7 @@ class Configuration(object):
     db_name = ''
     path = ''
     company = []
+    tasks = 5
 
     indexed_chars = '-1'
     includes = ['*/*']
@@ -54,11 +55,9 @@ class Configuration(object):
     continue_on_error = True
     ignore_above = '10M'
     max_size = -1
-    ocr = {
-        'language': 'eng',
-        'enabled': True,
-        'pdf_strategy':'ocr_and_text'
-    }
+    ocr_language = 'eng'
+    ocr_enabled = True
+    ocr_pdf_strategy = 'ocr_and_text'
     follow_symlinks = True
 
     @staticmethod
@@ -123,12 +122,24 @@ class Configuration(object):
             Color.pl('     {O}Windows: report bug{W}')
             exit(1)
 
+        if args.args.tasks:
+            Configuration.tasks = args.args.tasks
+
+        if Configuration.tasks < 1:
+            Configuration.tasks = 1
+
+        if Configuration.tasks > 256:
+            Configuration.tasks = 256
+
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
         Logger.pl('     {C}java version:{O} %s{W}' % java_ver)
+        Logger.pl('     {C}tasks:{O} %s{W}' % Configuration.tasks)
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)
+
+        Configuration.tasks = 5
 
         Logger.pl('     {C}module:{O} %s{W}' % module.name)
 
@@ -198,7 +209,11 @@ class Configuration(object):
                             'lang_detect': Configuration.lang_detect,
                             'continue_on_error': Configuration.continue_on_error,
                             'ignore_above': Configuration.ignore_above,
-                            'ocr': Configuration.ocr,
+                            'ocr': {
+                                'language': Configuration.ocr_language,
+                                'enabled': Configuration.ocr_enabled,
+                                'pdf_strategy': Configuration.ocr_pdf_strategy,
+                            },
                             'follow_symlinks': Configuration.follow_symlinks
                         }
                     }
@@ -229,7 +244,10 @@ class Configuration(object):
                     Configuration.lang_detect = general.get('lang_detect', Configuration.lang_detect)
                     Configuration.continue_on_error = general.get('continue_on_error', Configuration.continue_on_error)
                     Configuration.ignore_above = general.get('ignore_above', Configuration.ignore_above)
-                    Configuration.ocr = general.get('ocr', Configuration.ocr)
+                    Configuration.ocr = general.get('ocr', {}).get('language', Configuration.ocr_language)
+                    Configuration.ocr_language = general.get('ocr', {}).get('language', Configuration.ocr_language)
+                    Configuration.ocr_enabled = Tools.to_boolean(general.get('ocr', {}).get('enabled', Configuration.ocr_enabled))
+                    Configuration.ocr_pdf_strategy = general.get('ocr', {}).get('pdf_strategy', Configuration.ocr_pdf_strategy)
                     Configuration.follow_symlinks = general.get('follow_symlinks', Configuration.follow_symlinks)
 
                 if not module.load_config(data):

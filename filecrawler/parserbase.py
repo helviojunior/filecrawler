@@ -1,3 +1,4 @@
+import json
 import os
 import importlib
 import pkgutil
@@ -100,3 +101,71 @@ class ParserBase(object):
 
     def parse(self, file: File) -> dict:
         raise Exception('Method "parse" is not yet implemented.')
+
+    @classmethod
+    def lookup_credentials(cls, text) -> dict:
+        data = {}
+        '''
+        data['credentials'] = [
+            {'username': 'fdsfsd', 'password': 'dsdas'}
+        ]
+        data['aws_credentials'] = [
+            {'aws_access_key_id': 'fdsfsd', 'aws_secret_access_key': 'dsadas', 'region': 'ds', 'username': 'fdsfsd', 'password': 'dsdas'}
+        ]
+        '''
+        return data
+
+    @classmethod
+    def ocr_file(cls, file: File) -> dict:
+        from filecrawler.config import Configuration
+
+        if not Configuration.ocr_enabled:
+            return dict(metadata='', content='')
+
+        import tika
+        from tika import parser
+        tika.TikaClientOnly = True
+
+        headers = {
+            "X-Tika-OCRLanguage": f"eng+{Configuration.ocr_language}",
+            "X-Tika-PDFocrStrategy": Configuration.ocr_pdf_strategy
+        }
+        parsed = parser.from_file(str(file.path), headers=headers)
+
+        data = {}
+
+        if Configuration.raw_metadata:
+            not_meta = ['X-TIKA:', 'pdf:unmappedUnicodeCharsPerPage', 'pdf:charsPerPage',
+                        'Content-Length', 'Content-Type', 'ICC:', 'tiff:']
+            data['metadata'] = json.dumps(
+                {
+                    k: v for k, v in parsed["metadata"].items()
+                    if not next((True for k1 in not_meta if k1.lower() in k.lower()), False)
+                },
+                sort_keys=True, indent=2)
+
+        content = parsed["content"]
+        if content is None:
+            content = ''
+
+        # Clear some items
+        content = content.strip('\r\n ')
+        content = content.replace('\t', '  ')
+        while '\n\n\n' in content:
+            content = content.replace('\n\n\n', '\n\n')
+
+        data["content"] = content
+
+        return data
+
+    @classmethod
+    def get_readable_data(cls, file: File) -> str:
+        from filecrawler.config import Configuration
+
+        with open(file.path, 'rb') as f:
+            if Configuration.indexed_chars > 0:
+                bData = f.read(Configuration.indexed_chars)
+            else:
+                bData = f.read()
+
+        return bData.decode('utf-8', 'ignore')

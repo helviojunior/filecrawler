@@ -162,6 +162,11 @@ class Tools:
         return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=epoch)
 
     @staticmethod
+    def to_boolean(text: [str, bool]) -> bool:
+        return bool(text)
+
+
+    @staticmethod
     def get_mime(file_path: str) -> str:
         import magic
         from filecrawler.config import Configuration

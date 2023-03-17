@@ -8,19 +8,17 @@ from filecrawler.util.logger import Logger
 from filecrawler.parserbase import ParserBase
 
 
-class DefaultParser(ParserBase):
+class ImageParser(ParserBase):
+    extensions = ['png', 'jpg', 'jpeg', 'gif']
 
     def __init__(self):
-        super().__init__('Default', 'Parser for PDF files')
+        super().__init__('Image Parser', 'Parser for Image files')
 
     def parse(self, file: File) -> dict:
         from filecrawler.config import Configuration
-        data = {'content': self.get_readable_data(file)}
 
-        if file.mime == 'application/json' and file.size < 1024 * 1024:
-            try:
-                data['object_content'] = json.loads(data['content'])
-            except:
-                pass
+        data = self.ocr_file(file)
 
         return data
+
+

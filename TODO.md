@@ -1,11 +1,11 @@
 ## Parsers:
 * [x] PDF files
-* [ ] Microsoft Office files (Word, Excel etc)
-* [ ] X509 Certificate files
-* [ ] Image files (Jpg, Png, Gif etc)
-* [ ] Java packages (Jar and war)
-* [ ] Disassembly APK Files with APKTool
-* [ ] Compressed files (zip, tar, gzip etc)
+* [X] Microsoft Office files (Word, Excel etc)
+* [X] X509 Certificate files
+* [X] Image files (Jpg, Png, Gif etc)
+* [X] Java packages (Jar and war)
+* [X] Disassembly APK Files with APKTool
+* [X] Compressed files (zip, tar, gzip etc)
 * [ ] Containers (docker etc)
 
 ## Extractors:

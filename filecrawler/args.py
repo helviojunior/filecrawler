@@ -105,6 +105,14 @@ class Arguments(object):
                            dest=f'db_file',
                            help=Color.s('Filename to save status of indexed files. (default: {G}~/.filecrawler/{index_name}/indexer.db{W})'))
 
+        flags.add_argument('-T',
+                           action='store',
+                           dest='tasks',
+                           default=5,
+                           metavar='[tasks]',
+                           type=int,
+                           help=Color.s('number of connects in parallel (per host, default: {G}16{W})'))
+
         flags.add_argument('--clear-session',
                            action='store_true',
                            default=False,

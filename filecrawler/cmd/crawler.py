@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import threading
 import time
 import sys
 import hashlib
@@ -13,6 +14,7 @@ from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
 from filecrawler.libs.containerfile import ContainerFile
 from filecrawler.libs.file import File
+from filecrawler.libs.worker import Worker
 from filecrawler.parserbase import ParserBase
 from filecrawler.parsers.default import DefaultParser
 from filecrawler.util.color import Color
@@ -92,7 +94,6 @@ class Crawler(CrawlerBase):
         from elasticsearch.exceptions import ElasticsearchWarning
         warnings.simplefilter('ignore', ElasticsearchWarning)
 
-
         db = CrawlerDB(auto_create=False,
                        db_name=Configuration.db_name)
 
@@ -123,7 +124,7 @@ class Crawler(CrawlerBase):
                             'metadata': {'type': 'text'},
                             'parser': {'type': 'text'},
                             'object_content': {'type': 'flattened'},
-                            'aws_credentials': {'type': 'object'},
+                            'aws_credentials': {'type': 'flattened'},
                             'credentials': {'type': 'flattened'},
                         }
                 }
@@ -139,7 +140,33 @@ class Crawler(CrawlerBase):
 
         #Logger.pl('{+} {C}Database created {O}%s{W}' % self.db_name)
 
-        self.process_dir(db=db, base_path=Path(Configuration.path), path=Path(Configuration.path))
+        with Worker(callback=self.file_callback, per_thread_callback=self.thread_start_callback,
+                    threads=Configuration.tasks) as t:
+            t.start()
+
+            t1 = threading.Thread(target=self.status,
+                                  kwargs=dict(sync=t, text="Processed"))
+            t1.daemon = True
+            t1.start()
+
+            try:
+
+                for f in self.list_files(base_path=Path(Configuration.path), path=Path(Configuration.path)):
+                    while t.count > 1000:
+                        time.sleep(0.3)
+
+                    t.add_item(f)
+
+                while t.executed < 1 and t.count > 0:
+                    time.sleep(0.3)
+
+                while t.running and t.count > 0:
+                    time.sleep(0.300)
+
+            except KeyboardInterrupt as e:
+                raise e
+            finally:
+                t.close()
 
     @staticmethod
     def ignore(file: File) -> bool:
@@ -151,7 +178,32 @@ class Crawler(CrawlerBase):
 
         return False
 
-    def process_dir(self, db: CrawlerDB, base_path: Path, path: Path, recursive: bool = True, container_path: File = None):
+    def thread_start_callback(self, index, **kwargs):
+        return CrawlerDB(auto_create=False,
+                         db_name=Configuration.db_name)
+
+    def file_callback(self, entry, thread_callback_data, **kwargs):
+        self.process_file(db=thread_callback_data, file=entry)
+
+    def status(self, text, sync):
+        try:
+            while sync.running:
+                print(f' {text}: {sync.executed}', file=sys.stderr, end='\r', flush=True)
+                time.sleep(0.3)
+        except KeyboardInterrupt as e:
+            raise e
+        except:
+            pass
+        finally:
+            try:
+                size = os.get_terminal_size(fd=os.STDOUT_FILENO)
+            except:
+                size = 50
+
+            print((" " * size), end='\r', flush=True)
+            print((" " * size), file=sys.stderr, end='\r', flush=True)
+
+    def list_files(self, base_path: Path, path: Path, recursive: bool = True, container_path: File = None):
         here = str(path.resolve())
         files = [
             Path(os.path.join(here, name)).resolve()
@@ -160,7 +212,7 @@ class Crawler(CrawlerBase):
         ]
 
         for f in files:
-            self.process_file(db=db, file=File(base_path, f, container_path))
+            yield File(base_path, f, container_path)
 
         if recursive:
             dirs = [
@@ -169,14 +221,19 @@ class Crawler(CrawlerBase):
                 if os.path.isdir(os.path.join(here, name))
             ]
             for d in dirs:
-                self.process_dir(db=db, base_path=base_path, path=d, recursive=recursive, container_path=container_path)
+                yield from self.list_files(
+                    base_path=base_path,
+                    path=d,
+                    recursive=recursive,
+                    container_path=container_path)
 
     def process_file(self, db: CrawlerDB, file: File):
 
         if ContainerFile.is_container(file):
             with(ContainerFile(file)) as container:
                 out_path = container.extract()
-                self.process_dir(db=db, base_path=out_path, path=out_path, recursive=True, container_path=file)
+                for f in self.list_files( base_path=out_path, path=out_path, recursive=True, container_path=file):
+                    self.process_file(db=db, file=f)
         else:
 
             if Crawler.ignore(file):
@@ -200,6 +257,10 @@ class Crawler(CrawlerBase):
                 tmp = parser.parse(file)
                 if tmp is not None:
                     data.update(**tmp)
+
+                    creds = parser.lookup_credentials(data.get('content', ''))
+                    if creds is not None:
+                        data.update(creds)
 
                     if data.get('content', None) is not None and Configuration.indexed_chars > 0:
                         data['content'] = data['content'][:Configuration.indexed_chars]
