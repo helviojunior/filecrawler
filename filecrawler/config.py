@@ -12,7 +12,7 @@ from .libs.crawlerdb import CrawlerDB
 from .parserbase import ParserBase
 from .util.color import Color
 from .util.logger import Logger
-from .__meta__ import __version__
+from .__meta__ import __version__, __description__
 from .util.tools import Tools
 from yaml.loader import SafeLoader, FullLoader
 
@@ -323,10 +323,10 @@ class Configuration(object):
 
             return '''\
 
-{G}filecrawler {D}v%s{W}{G} by Helvio Junior{W}
-{W}{D}Active Directory, BloodHound, NTDS hashes and Password Cracks correlation tool{W}
+{G}File Crawler {D}v%s{W}{G} by Helvio Junior{W}
+{W}{D}%s{W}
 {C}{D}https://github.com/helviojunior/filecrawler{W}
-    ''' % Configuration.version
+    ''' % (Configuration.version, __description__)
 
 
     @staticmethod

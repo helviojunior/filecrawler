@@ -5,8 +5,10 @@ import shutil
 import sys, os.path
 import sqlite3
 import string, base64
+import time
 from functools import reduce
 from sqlite3 import Connection, OperationalError, IntegrityError, ProgrammingError
+import contextlib
 
 
 # TODO: use this decorator to wrap commit/rollback in a try/except block ?
@@ -40,6 +42,18 @@ def connect(func):
         if conn is None:
             conn = self.connect_to_db()
 
+        try:
+            with contextlib.closing(conn.cursor()) as cursor:
+                pass
+            #Connecion is open
+        except:
+            try:
+                self.db_connection.close()
+            except:
+                pass
+            self.db_connection = None
+            conn = self.connect_to_db()
+
         return func(self, conn, *args, **kwargs)
 
     return inner_func
@@ -70,14 +84,30 @@ class Database(object):
     def __exit__(self, exception_type, exception_value, traceback):
         self.db_connection.close()
 
+    def close(self):
+        if self.db_connection is not None:
+            self.db_connection.close()
+        self.db_connection = None
+
+    def reconnect(self):
+        self.close()
+        time.sleep(0.300)
+        self.connect_to_db()
+
+    @staticmethod
+    def _execute(conn, sql, values):
+        with conn:  # auto-commits
+            with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+                cursor.execute(sql, values)
+                conn.commit()
+
     @connect
     def insert_one(self, conn, table_name, **kwargs):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
-        conn.execute(sql, values)
-        conn.commit()
+        Database._execute(conn, sql, values)
 
     @connect
     def insert_ignore_one(self, conn, table_name, **kwargs):
@@ -85,8 +115,7 @@ class Database(object):
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT OR IGNORE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
-        conn.execute(sql, values)
-        conn.commit()
+        Database._execute(conn, sql, values)
 
     @connect
     def insert_replace_one(self, conn, table_name, **kwargs):
@@ -94,42 +123,41 @@ class Database(object):
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT OR REPLACE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
-        conn.execute(sql, values)
-        conn.commit()
+        Database._execute(conn, sql, values)
 
     @connect
     def insert_update_one(self, conn: str, table_name: str, **kwargs):
         self.insert_update_one_exclude(table_name, [], **kwargs)
 
     @connect
-    def insert_update_one_exclude(self, conn: str, table_name: str, exclude_on_update: list = [], **kwargs) -> (bool, bool):
+    def insert_update_one_exclude(self, conn, table_name: str, exclude_on_update: list = [], **kwargs) -> (bool, bool):
         inserted = False
         updated = False
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT OR IGNORE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
-        c = conn.execute(sql, values)
+        with conn:  # auto-commits
+            with contextlib.closing(conn.execute(sql, values)) as c:  # auto-closes
 
-        # No inserted, need to update
-        if c.rowcount == 0:
-            table_name = self.scrub(table_name)
-            f_columns = self.constraints[table_name]
-            f_values = tuple([kwargs.get(c, None) for c in f_columns],)
-            args = {k: v for k, v in kwargs.items() if k not in exclude_on_update}
-            (u_columns, u_values) = self.parse_args(args)
+                # No inserted, need to update
+                if c.rowcount == 0:
+                    table_name = self.scrub(table_name)
+                    f_columns = self.constraints[table_name]
+                    f_values = tuple([kwargs.get(c, None) for c in f_columns],)
+                    args = {k: v for k, v in kwargs.items() if k not in exclude_on_update}
+                    (u_columns, u_values) = self.parse_args(args)
 
-            sql = f"UPDATE [{table_name}] SET "
-            sql += "{}".format(', '.join([f'{col} = ?' for col in u_columns]))
-            if len(f_columns) > 0:
-                sql += " WHERE {}".format(f' and '.join([f'{col} = ?' for col in f_columns]))
-            conn.execute(sql, tuple(u_values + f_values, ))
+                    sql = f"UPDATE [{table_name}] SET "
+                    sql += "{}".format(', '.join([f'{col} = ?' for col in u_columns]))
+                    if len(f_columns) > 0:
+                        sql += " WHERE {}".format(f' and '.join([f'{col} = ?' for col in f_columns]))
+                    Database._execute(conn, sql, tuple(u_values + f_values, ))
+                    updated = True
+                else:
+                    inserted = True
+
             conn.commit()
-            updated = True
-        else:
-            inserted = True
-
-        conn.commit()
         return inserted, updated
 
 
@@ -145,12 +173,15 @@ class Database(object):
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
 
-        cursor = conn.execute(sql, values)
-        if cursor.rowcount == 0:
-            return []
+        with conn:  # auto-commits
+            with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+                cursor.execute(sql, values)
 
-        columns = cursor.description
-        return [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
+                if cursor.rowcount == 0:
+                    return []
+
+                columns = cursor.description
+                return [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
 
     def select_first(self, table_name, **kwargs):
         data = self.select(table_name, **kwargs)
@@ -160,11 +191,15 @@ class Database(object):
 
     @connect
     def select_raw(self, conn, sql: str, args: any):
-        cursor = conn.execute(sql, tuple(args,))
-        if cursor.rowcount == 0:
-            return []
-        columns = cursor.description
-        return [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        with conn:  # auto-commits
+            with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+                cursor.execute(sql, tuple(args,))
+
+                if cursor.rowcount == 0:
+                    return []
+
+                columns = cursor.description
+                return [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
 
     @connect
     def select_count(self, conn, table_name, **kwargs) -> int:
@@ -177,12 +212,17 @@ class Database(object):
         sql = f"SELECT count(*) FROM [{table_name}]"
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
-        cursor = conn.execute(sql, values)
-        if cursor.rowcount == 0:
-            return 0
-        data = cursor.fetchone()
 
-        return int(data[0])
+        with conn:  # auto-commits
+            with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+                cursor.execute(sql, values)
+
+                if cursor.rowcount == 0:
+                    return 0
+
+                data = cursor.fetchone()
+
+                return int(data[0])
 
     @connect
     def delete(self, conn, table_name, **kwargs) -> None:
@@ -195,8 +235,7 @@ class Database(object):
         sql = f"DELETE FROM [{table_name}]"
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
-        conn.execute(sql, values)
-        conn.commit()
+        Database._execute(conn, sql, values)
 
     @connect
     def update(self, conn, table_name, filter_data, **kwargs):
@@ -211,8 +250,7 @@ class Database(object):
         sql += "{}".format(', '.join([f'{col} = ?' for col in u_columns]))
         if len(f_columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in f_columns]))
-        conn.execute(sql, tuple(u_values + f_values, ))
-        conn.commit()
+        Database._execute(conn, sql, tuple(u_values + f_values, ))
 
     def get_constraints(self) -> dict:
         sql = ('SELECT '
@@ -228,20 +266,23 @@ class Database(object):
                '  il.origin = "u"  '
                'ORDER BY table_name, key_name, ii.seqno')
 
-        cursor = self.db_connection.execute(sql)
-        columns = cursor.description
-        db_scheme = [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
+        with self.db_connection:  # auto-commits
+            with contextlib.closing(self.db_connection.cursor()) as cursor:  # auto-closes
+                cursor.execute(sql)
 
-        if len(db_scheme) > 0:
-            self.constraints = reduce(lambda a, b: {**a, **b},
-                                      [{table: [
-                                            v['column_name'] for idx, v in enumerate(db_scheme)
-                                            if v['table_name'] == table
-                                        ]} for table in set([t['table_name'] for t in db_scheme])])
-        else:
-            self.constraints = {}
+                columns = cursor.description
+                db_scheme = [{columns[index][0]: column for index, column in enumerate(value)} for value in cursor.fetchall()]
 
-        return self.constraints
+                if len(db_scheme) > 0:
+                    self.constraints = reduce(lambda a, b: {**a, **b},
+                                              [{table: [
+                                                    v['column_name'] for idx, v in enumerate(db_scheme)
+                                                    if v['table_name'] == table
+                                                ]} for table in set([t['table_name'] for t in db_scheme])])
+                else:
+                    self.constraints = {}
+
+                return self.constraints
 
     def parse_args(self, source_dict) -> tuple:
         if source_dict is None:
@@ -286,24 +327,30 @@ class Database(object):
         if check:
             try:
                 # I don't know if this is the simplest and fastest query to try
-                conn.execute(
-                    'SELECT name FROM sqlite_temp_master WHERE type="table";')
-                pass
+                with conn:  # auto-commits
+                    with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+                        cursor.execute('SELECT name FROM sqlite_temp_master WHERE type="table";')
+
             except (AttributeError, ProgrammingError) as e:
                 raise Exception(f'Fail connecting to SQLite file: {self.db_name}', e)
 
         shutil.copy(self.db_name, f'{self.db_name}.bkp')
 
-        cursor = conn.cursor()
-        # www.sqlite.org/pragma.html
-        # https://blog.devart.com/increasing-sqlite-performance.html
-        cursor.execute("PRAGMA temp_store = MEMORY")
-        # cursor.execute("PRAGMA page_size = 4096")
-        # cursor.execute("PRAGMA cache_size = 10000")
-        #cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
-        cursor.execute("PRAGMA synchronous=OFF")
-        cursor.execute("PRAGMA journal_mode=MEMORY")
-        # cursor.execute("PRAGMA foreign_keys=ON")
+        with conn:  # auto-commits
+            with contextlib.closing(conn.cursor()) as cursor:  # auto-closes
+
+                # www.sqlite.org/pragma.html
+                # https://blog.devart.com/increasing-sqlite-performance.html
+                cursor.execute("PRAGMA temp_store = MEMORY")
+                # cursor.execute("PRAGMA page_size = 4096")
+                # cursor.execute("PRAGMA cache_size = 10000")
+                #cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
+                cursor.execute("PRAGMA synchronous=OFF")
+                cursor.execute("PRAGMA busy_timeout=15000")  # milliseconds
+                cursor.execute("PRAGMA lock_timeout=5000")  # milliseconds
+                cursor.execute("PRAGMA journal_mode=MEMORY")
+
+                # cursor.execute("PRAGMA foreign_keys=ON")
 
         self.db_connection = conn
 
@@ -369,65 +416,30 @@ class Database(object):
         """)
         conn.commit()
 
-        '''
         cursor.execute("""
-                    CREATE INDEX idx_bloodhound_objects_sync_date
-                    ON bloodhound_objects (sync_date);
+                    CREATE INDEX idx_file_index_fingerprint
+                    ON [file_index] (fingerprint);
                 """)
 
         conn.commit()
 
         cursor.execute("""
-                    CREATE INDEX idx_bloodhound_objects_sync_updated_date
-                    ON bloodhound_objects (sync_date, updated_date);
+                    CREATE INDEX idx_file_index_file_id
+                    ON [file_index] (file_id);
                 """)
 
         conn.commit()
 
         cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS [bloodhound_edge] (
-                        edge_id TEXT NOT NULL,
-                        source_id TEXT NOT NULL,
-                        destination_id TEXT NOT NULL,
-                        source_label TEXT NOT NULL,
-                        target_label TEXT NOT NULL,
-                        edge_type TEXT NOT NULL DEFAULT(''),
-                        edge_props TEXT NOT NULL DEFAULT(''),
-                        source_filter_type TEXT NOT NULL DEFAULT('objectid'),
-                        props TEXT NOT NULL DEFAULT(''),
-                        insert_date datetime not null DEFAULT(strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime')),
-                        updated_date datetime not null DEFAULT(strftime('%Y-%m-%d %H:%M:%f', 'NOW', 'localtime')),
-                        sync_date datetime not null DEFAULT ('1970-01-01'),
-                        UNIQUE(edge_id)
-                    );
+                    CREATE INDEX idx_file_index_integrated
+                    ON [file_index] (integrated);
                 """)
 
         conn.commit()
 
         cursor.execute("""
-                    CREATE UNIQUE INDEX idx_bloodhound_edge_edge_id 
-                    ON bloodhound_edge (edge_id);
+                    CREATE INDEX idx_file_index_integrated_indexing_date
+                    ON [file_index] (integrated, indexing_date);
                 """)
 
         conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_bloodhound_edge_updated_date
-                    ON bloodhound_edge (updated_date);
-                """)
-
-        conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_bloodhound_edge_sync_updated_date
-                    ON bloodhound_edge (sync_date, updated_date);
-                """)
-
-        conn.commit()
-
-        cursor.execute("""
-            INSERT INTO [domains](name) values('default');
-        """)
-
-        conn.commit()
-        '''

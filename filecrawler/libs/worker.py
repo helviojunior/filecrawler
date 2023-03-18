@@ -56,6 +56,7 @@ class Worker:
         if self.per_thread_callback is not None:
             tcb = self.per_thread_callback(index, **kwargs)
 
+        thread_count = 0
         while self.__running:
             entry = self.q.get()
 
@@ -64,7 +65,8 @@ class Worker:
                 continue
 
             try:
-                self.callback(worker=self, entry=entry, thread_callback_data=tcb, **kwargs)
+                self.callback(worker=self, entry=entry, thread_callback_data=tcb, thread_count=thread_count, **kwargs)
+                thread_count += 1
             finally:
                 self.__count += 1
                 self.q.task_done()

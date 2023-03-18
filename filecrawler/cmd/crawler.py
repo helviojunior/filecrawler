@@ -168,6 +168,7 @@ class Crawler(CrawlerBase):
 
                 try:
 
+                    fl_count = 0
                     for f in self.list_files(base_path=Path(Configuration.path), path=Path(Configuration.path)):
                         if not t.running or not ing.running:
                             break
@@ -175,18 +176,21 @@ class Crawler(CrawlerBase):
                         while t.count > 1000:
                             time.sleep(0.3)
 
+                        fl_count += 1
                         t.add_item(f)
+
+                    Logger.pl('{+} {C}file list finished with {O}%s{C} files{W}' % fl_count)
 
                     while t.running and t.executed < 1 and t.count > 0:
                         time.sleep(0.3)
 
-                    while t.running and t.running and t.count > 0:
+                    while t.running and t.count > 0:
                         time.sleep(0.300)
 
                     while ing.running and ing.executed < 1 and ing.count > 0:
                         time.sleep(0.3)
 
-                    while ing.running and ing.running and ing.count > 0:
+                    while ing.running and ing.count > 0:
                         time.sleep(0.300)
 
                 except KeyboardInterrupt as e:
@@ -209,7 +213,7 @@ class Crawler(CrawlerBase):
         return CrawlerDB(auto_create=False,
                          db_name=Configuration.db_name)
 
-    def file_callback(self, worker, entry, thread_callback_data, **kwargs):
+    def file_callback(self, worker, entry, thread_callback_data, thread_count, **kwargs):
         try:
             self.process_file(db=thread_callback_data, file=entry)
         except KeyboardInterrupt as e:
@@ -236,7 +240,7 @@ class Crawler(CrawlerBase):
             print((" " * size), end='\r', flush=True)
             print((" " * size), file=sys.stderr, end='\r', flush=True)
 
-    def integrator_callback(self, worker, entry, thread_callback_data, **kwargs):
+    def integrator_callback(self, worker, entry, thread_callback_data, thread_count, **kwargs):
         try:
             #self.process_file(db=thread_callback_data, file=entry)
             file_id = int(entry)
@@ -284,26 +288,26 @@ class Crawler(CrawlerBase):
 
     def integrator_selector(self, worker):
         try:
-            db = CrawlerDB(auto_create=False,
-                           db_name=Configuration.db_name)
-            while worker.running:
+            with(CrawlerDB(auto_create=False,
+                           db_name=Configuration.db_name)) as db:
+                while worker.running:
 
-                while worker.count > 500:
-                    time.sleep(0.3)
+                    while worker.count > 500:
+                        time.sleep(0.3)
 
-                try:
-                    rows = db.select_raw(
-                        sql='select file_id from [file_index] where integrated = 0 order by indexing_date limit 1000',
-                        args=[]
-                    )
-                    if rows is not None and len(rows) > 0:
-                        for r in rows:
-                            worker.add_item(int(r['file_id']))
-                except sqlite3.OperationalError as e:
-                    if 'locked' in str(e):
-                        time.sleep(5)
+                    try:
+                        rows = db.select_raw(
+                            sql='select file_id from [file_index] where integrated = 0 order by indexing_date limit 1000',
+                            args=[]
+                        )
+                        if rows is not None and len(rows) > 0:
+                            for r in rows:
+                                worker.add_item(int(r['file_id']))
+                    except sqlite3.OperationalError as e:
+                        if 'locked' in str(e):
+                            time.sleep(5)
 
-                time.sleep(5)
+                    time.sleep(5)
 
         except KeyboardInterrupt as e:
             worker.close()
@@ -350,6 +354,10 @@ class Crawler(CrawlerBase):
 
             Crawler.read += 1
 
+            if db.select_count('file_index', index_id=self.index_id, fingerprint=file.fingerprint) > 0:
+                Crawler.ignored += 1
+                return
+
             row = None
             last_error = None
             for i in range(50):
@@ -366,6 +374,8 @@ class Crawler(CrawlerBase):
                     last_error = e
                     if 'locked' in str(e):
                         time.sleep(0.5 * float(i))
+                        if i >= 20:
+                            db.reconnect()
 
             if row is None and not Configuration.continue_on_error:
                 Color.pl(
@@ -394,16 +404,21 @@ class Crawler(CrawlerBase):
                 if isinstance(b64_data, bytes):
                     b64_data = b64_data.decode("utf-8")
 
-                if b64_data is None or b64_data.strip() == '':
-                    print(data)
-                    raise Exception('fkdl')
+                # try to send in a first attempt
+                integrated = 0
+                try:
+                    self.send_to_elastic(**data)
+                    integrated = 1
+                    Crawler.integrated += 1
+                except:
+                    pass
 
                 for i in range(5):
                     try:
                         db.update('file_index',
                                   filter_data=dict(file_id=row['file_id']),
                                   **dict(
-                                      integrated=0,
+                                      integrated=integrated,
                                       data=b64_data
                                   )
                         )
