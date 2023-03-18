@@ -37,9 +37,8 @@ class Configuration(object):
     tasks_integrator = 2
 
     indexed_chars = '-1'
-    includes = ['*/*']
     excludes = [
-                   '*/~*', '*/.git/*', '*/*.svg', '*/*.png', '*/*.css', '*/*.gif',
+                   '*/~*', '*/.git/*', '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png', '*/*.css', '*/*.gif',
                    '*/*.ttf', '*/*.woff', '*/*.wof2'
                ]
     json_support = False
@@ -206,7 +205,6 @@ class Configuration(object):
                 sample_config = {
                         'general': {
                             'indexed_chars': Configuration.indexed_chars,
-                            'includes': Configuration.includes,
                             'excludes': Configuration.excludes,
                             'json_support': Configuration.json_support,
                             'filename_as_id': Configuration.filename_as_id,
@@ -245,7 +243,6 @@ class Configuration(object):
                     #print(data)
 
                     Configuration.indexed_chars = int(general.get('indexed_chars', Configuration.indexed_chars))
-                    Configuration.includes = general.get('includes', Configuration.includes)
                     Configuration.excludes = general.get('excludes', Configuration.excludes)
                     Configuration.json_support = general.get('json_support', Configuration.json_support)
                     Configuration.filename_as_id = general.get('filename_as_id', Configuration.filename_as_id)

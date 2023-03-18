@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 import sqlite3
 import threading
 import time
@@ -207,7 +208,12 @@ class Crawler(CrawlerBase):
         if file.size > Configuration.max_size:
             return False
 
-        return False
+        ignore = next((
+            True for x in Configuration.excludes
+            if file.path.match(x)
+        ), False)
+
+        return ignore
 
     def thread_start_callback(self, index, **kwargs):
         return CrawlerDB(auto_create=False,
