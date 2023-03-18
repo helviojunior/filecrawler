@@ -65,10 +65,16 @@ class ContainerFile(object):
 
     def extract(self) -> Optional[Path]:
         from inspect import getmembers, isfunction
+
+        #Try first by extension and after by mime type
+        # Some specific extensions like APK and JAR has application/zip mime
         name = next((
             x['name'] for x in ContainerFile._defs
-            if self._file.extension in x.get('extensions', []) or self._file.mime in x.get('mime', [])
-        ), '')
+            if self._file.extension in x.get('extensions', [])
+        ), next((
+            x['name'] for x in ContainerFile._defs
+            if self._file.mime in x.get('mime', [])
+        ), ''))
         extractor_fnc = next((
             getattr(self, f[0]) for f in getmembers(self.__class__, isfunction)
             if f[0] == f'extract_{name}'
@@ -98,11 +104,14 @@ class ContainerFile(object):
         if not Configuration.extract_files:
             return False
 
-        from zipfile import ZipFile
-        with ZipFile(str(self._file.path), 'r') as zObject:
-            zObject.extractall(self._temp_path)
+        try:
+            from zipfile import ZipFile
+            with ZipFile(str(self._file.path), 'r') as zObject:
+                zObject.extractall(self._temp_path)
 
-        return True
+            return True
+        except:
+            return False
 
     def extract_rar(self) -> bool:
         from filecrawler.config import Configuration
@@ -193,4 +202,12 @@ class ContainerFile(object):
             f'java -jar apktool_2.7.0.jar -f d "{self._file.path}" -o "{self._temp_path}"',
             cwd=os.path.join(Configuration.lib_path, 'bin'))
 
-        return retcode == 0
+        if retcode != 0:
+            try:
+                from zipfile import ZipFile
+                with ZipFile(str(self._file.path), 'r') as zObject:
+                    zObject.extractall(self._temp_path)
+
+                return True
+            except:
+                return False
