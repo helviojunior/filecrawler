@@ -53,6 +53,9 @@ class Configuration(object):
     raw_metadata = False
     xml_support = False
     lang_detect = False
+    jar_support = True
+    apk_support = True
+    extract_files = True
     continue_on_error = True
     ignore_above = '10M'
     max_size = -1
@@ -207,6 +210,8 @@ class Configuration(object):
                             'excludes': Configuration.excludes,
                             'json_support': Configuration.json_support,
                             'filename_as_id': Configuration.filename_as_id,
+                            'jar_support': Configuration.jar_support,
+                            'apk_support': Configuration.apk_support,
                             'add_filesize': Configuration.add_filesize,
                             'remove_deleted': Configuration.remove_deleted,
                             'add_as_inner_object': Configuration.add_as_inner_object,
@@ -218,6 +223,7 @@ class Configuration(object):
                             'lang_detect': Configuration.lang_detect,
                             'continue_on_error': Configuration.continue_on_error,
                             'ignore_above': Configuration.ignore_above,
+                            'extract_files': Configuration.extract_files,
                             'ocr': {
                                 'language': Configuration.ocr_language,
                                 'enabled': Configuration.ocr_enabled,
@@ -258,6 +264,9 @@ class Configuration(object):
                     Configuration.ocr_enabled = Tools.to_boolean(general.get('ocr', {}).get('enabled', Configuration.ocr_enabled))
                     Configuration.ocr_pdf_strategy = general.get('ocr', {}).get('pdf_strategy', Configuration.ocr_pdf_strategy)
                     Configuration.follow_symlinks = general.get('follow_symlinks', Configuration.follow_symlinks)
+                    Configuration.jar_support = general.get('jar_support', Configuration.jar_support)
+                    Configuration.apk_support = general.get('apk_support', Configuration.apk_support)
+                    Configuration.extract_files = general.get('extract_files', Configuration.extract_files)
 
                 if not module.load_config(data):
                     Configuration.mandatory()

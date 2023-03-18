@@ -83,6 +83,10 @@ class ContainerFile(object):
         return None
 
     def extract_7z(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
         from py7zr import SevenZipFile
         with SevenZipFile(str(self._file.path), 'r') as zObject:
             zObject.extractall(path=self._temp_path)
@@ -90,6 +94,10 @@ class ContainerFile(object):
         return True
 
     def extract_zip(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
         from zipfile import ZipFile
         with ZipFile(str(self._file.path), 'r') as zObject:
             zObject.extractall(self._temp_path)
@@ -97,6 +105,10 @@ class ContainerFile(object):
         return True
 
     def extract_rar(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
         from rarfile import RarFile
         with RarFile(str(self._file.path), 'r') as rObject:
             rObject.extractall(path=self._temp_path)
@@ -104,6 +116,10 @@ class ContainerFile(object):
         return True
 
     def extract_tar(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
         return False
 
         import tarfile
@@ -112,6 +128,9 @@ class ContainerFile(object):
         return True
 
     def extract_gz(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
 
         name = self._file.path.name.lower()
 
@@ -140,6 +159,10 @@ class ContainerFile(object):
         return self.extract_bz2()
 
     def extract_bz2(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
         self.create_folder()
         import bz2
         nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
@@ -150,9 +173,20 @@ class ContainerFile(object):
         return True
 
     def extract_jar(self) -> bool:
-        return self.extract_apk()
+        from filecrawler.config import Configuration
+        if not Configuration.jar_support:
+            return False
+
+        return self._apktool()
 
     def extract_apk(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.apk_support:
+            return False
+
+        return self._apktool()
+
+    def _apktool(self) -> bool:
         from filecrawler.config import Configuration
 
         (retcode, _, _) = Process.call(
