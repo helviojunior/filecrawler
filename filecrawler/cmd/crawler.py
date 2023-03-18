@@ -206,11 +206,11 @@ class Crawler(CrawlerBase):
             return True
 
         if file.size > Configuration.max_size:
-            return False
+            return True
 
         ignore = next((
             True for x in Configuration.excludes
-            if file.path.match(x)
+            if Path(str(file.path).lower()).match(x)
         ), False)
 
         return ignore
@@ -335,8 +335,12 @@ class Crawler(CrawlerBase):
             dirs = [
                 Path(os.path.join(here, name)).resolve()
                 for name in os.listdir(here)
-                if os.path.isdir(os.path.join(here, name))
+                if os.path.isdir(os.path.join(here, name)) and next((
+                    False for x in Configuration.excludes
+                    if Path(str(os.path.join(here, name)).lower()).match(x)
+                    ), True)
             ]
+
             for d in dirs:
                 yield from self.list_files(
                     base_path=base_path,

@@ -39,7 +39,7 @@ class Configuration(object):
     indexed_chars = '-1'
     excludes = [
                    '*/~*', '*/.git/*', '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png', '*/*.css', '*/*.gif',
-                   '*/*.ttf', '*/*.woff', '*/*.wof2'
+                   '*/*.ttf', '*/*.woff', '*/*.wof2', '*/*.pyc', '*/.idea/*'
                ]
     json_support = False
     filename_as_id = False
@@ -265,6 +265,15 @@ class Configuration(object):
                     Configuration.apk_support = general.get('apk_support', Configuration.apk_support)
                     Configuration.extract_files = general.get('extract_files', Configuration.extract_files)
 
+                    # Lowercase
+                    Configuration.excludes = [
+                        x.lower().strip() for x in Configuration.excludes
+                    ]
+                    Configuration.excludes += [
+                        x[:-1] for x in Configuration.excludes
+                        if x[-2:] == '/*'
+                    ]
+
                 if not module.load_config(data):
                     Configuration.mandatory()
 
@@ -278,6 +287,15 @@ class Configuration(object):
             else:
                 Color.pl('{!} {R}error: could not open {G}%s{W}\r\n' % Configuration.config_file)
                 sys.exit(1)
+
+        excluded = next((
+            x for x in Configuration.excludes
+            if Path(Configuration.path.lower()).match(x)
+        ), None)
+
+        if excluded is not None:
+            Color.pl('{!} {R}error: the path {G}%s{R} is excluded by {G}%s{W}\r\n' % (Configuration.path, excluded))
+            sys.exit(1)
 
         ia = Configuration.ignore_above.lower()
         x = re.search(r'([0-9]+)([a-z]{0,1})', ia)
