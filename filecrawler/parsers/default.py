@@ -18,3 +18,8 @@ class DefaultParser(ParserBase):
         data = {'content': self.get_readable_data(file)}
 
         return data
+
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        data = {'content': self.get_readable_data(file_data)}
+
+        return data

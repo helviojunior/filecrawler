@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
+import base64
 import datetime
 import os
 import platform
@@ -205,7 +206,7 @@ class Tools:
         return f.from_buffer(open(file_path, "rb").read(2048)).lower()
 
     @staticmethod
-    def get_mimes(data: str) -> str:
+    def get_mimes(data: [str, bytes]) -> str:
         import magic
         from filecrawler.config import Configuration
 
@@ -214,7 +215,8 @@ class Tools:
             f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
         else:
             f = magic.Magic(mime=True)
-        return f.from_buffer(data.encode("UTF-8")).lower()
+        return f.from_buffer(data.encode("UTF-8") if isinstance(data, str) else data).lower()
+
 
     @staticmethod
     def json_serial(obj):
@@ -222,6 +224,10 @@ class Tools:
 
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+        if isinstance(obj, bytes):
+            return base64.b64encode(obj).decode("UTF-8")
+
         raise TypeError("Type %s not serializable" % type(obj))
 
     @staticmethod

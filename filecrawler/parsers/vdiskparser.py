@@ -28,4 +28,6 @@ class VDiskParser(ParserBase):
 
         return data
 
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        return dict()
 

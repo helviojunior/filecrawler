@@ -33,4 +33,17 @@ class YamlParser(ParserBase):
 
         return data
 
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        from filecrawler.config import Configuration
+        data = {'content': self.get_readable_data(file_data)}
+
+        try:
+            tmp = dict(yaml.load(file_data, Loader=yaml.FullLoader))
+            data['object_content'] = json.dumps(tmp, sort_keys=False, identy=2)
+        except:
+            pass
+
+        return data
+
+
 

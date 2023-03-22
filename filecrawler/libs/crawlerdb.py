@@ -235,6 +235,15 @@ class CrawlerDB(Database):
 
     def insert_or_get_file(self, **data) -> Optional[dict]:
 
+        if 'content' in data.keys():
+            data.pop('content')
+
+        if 'metadata' in data.keys():
+            data.pop('metadata')
+
+        if 'temp' in data.keys():
+            data.pop('temp')
+
         (inserted, updated) = self.insert_update_one_exclude('file_index',
                                                              exclude_on_update=[
                                                                  'indexing_date',

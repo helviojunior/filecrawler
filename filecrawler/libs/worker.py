@@ -1,3 +1,4 @@
+import time
 from typing import Any
 import queue
 import threading
@@ -12,6 +13,7 @@ class Worker:
     callback = None
     per_thread_callback = None
     inserted = []
+    threads_status = {}
 
     def __init__(self, callback: Any = None, per_thread_callback: Any = None, threads=2):
         if callback is None or not callable(callback):
@@ -47,6 +49,7 @@ class Worker:
         self.__running = True
         self.__count = 0
         for i in range(self.threads):
+            self.threads_status[i] = False
             t = threading.Thread(target=self.__worker, kwargs=dict(index=i, **kwargs))
             t.daemon = True
             t.start()
@@ -65,11 +68,14 @@ class Worker:
                 continue
 
             try:
+                self.threads_status[index] = True
                 self.callback(worker=self, entry=entry, thread_callback_data=tcb, thread_count=thread_count, **kwargs)
                 thread_count += 1
             finally:
+                thread_count += 1
                 self.__count += 1
                 self.q.task_done()
+                self.threads_status[index] = False
 
     @property
     def count(self):
@@ -82,6 +88,23 @@ class Worker:
     @property
     def running(self):
         return self.__running
+
+    @property
+    def executing(self):
+        return next((
+            v for _, v in self.threads_status.items()
+            if v
+        ), False)
+
+    def wait_finish(self):
+        while self.running and self.executed < 1 and self.count > 0:
+            time.sleep(0.3)
+
+        while self.running and self.count > 0:
+            time.sleep(0.300)
+
+        while self.executing:
+            time.sleep(0.300)
 
     def close(self):
         self.__running = False

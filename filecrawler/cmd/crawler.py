@@ -182,19 +182,12 @@ class Crawler(CrawlerBase):
                         fl_count += 1
                         t.add_item(f)
 
-                    Logger.pl('{+} {C}file list finished with {O}%s{C} files{W}' % fl_count)
+                    Logger.pl('{+} {C}file list finished with {O}%s{C} files, waiting processors...{W}' % fl_count)
 
-                    while t.running and t.executed < 1 and t.count > 0:
-                        time.sleep(0.3)
+                    t.wait_finish()
+                    ing.wait_finish()
 
-                    while t.running and t.count > 0:
-                        time.sleep(0.300)
-
-                    while ing.running and ing.executed < 1 and ing.count > 0:
-                        time.sleep(0.3)
-
-                    while ing.running and ing.count > 0:
-                        time.sleep(0.300)
+                    Logger.pl('{+} {C}processors finished!{W}')
 
                 except KeyboardInterrupt as e:
                     raise e
@@ -213,6 +206,24 @@ class Crawler(CrawlerBase):
         ignore = next((
             True for x in Configuration.excludes
             if Path(str(file.path).lower()).match(x)
+        ), False)
+
+        return Crawler.ignore2(file.size, str(file.path).lower(), [])
+
+    @staticmethod
+    def ignore2(size: int, path: str, include: list) -> bool:
+        if size > Configuration.max_size:
+            return True
+
+        if path is None:
+            return True
+
+        ignore = next((
+            True for x in [
+                x1 for x1 in Configuration.excludes
+                if x1 not in include
+            ]
+            if Path(str(path).lower()).match(x)
         ), False)
 
         return ignore
@@ -358,47 +369,91 @@ class Crawler(CrawlerBase):
 
     def process_path(self, db: CrawlerDB, path: CPath):
         if path.name == '.git' and Configuration.git_support:
-            git = GitFinder(path)
-            for f_data in git.get_diffs():
-                Crawler.read += 1
-                integrated = 0
-                b64_data = ''
+            try:
+                git = GitFinder(path)
+                for f_data in git.get_diffs():
 
-                try:
-                    self.send_to_elastic(**f_data)
-                    Crawler.integrated += 1
-                    integrated = 1
-                except Exception as e:
+                    Crawler.read += 1
+
+                    if Crawler.ignore2(len(f_data.get('content', '')), f_data['path_real'], ['*/.git/*', '*/.git/']):
+                        Crawler.ignored += 1
+                        continue
+
+                    parser = ParserBase.get_parser_instance(f_data['extension'], f_data['mime_type'])
+                    f_data.update(dict(parser=parser.name))
+
+                    tmp = parser.parse_from_bytes(f_data.get('content', bytes()))
+                    if tmp is not None:
+                        f_data.update(**tmp)
+
+                        creds = parser.lookup_credentials(f_data.get('content', bytes()))
+                        if creds is not None:
+                            f_data.update(creds)
+
+                        if f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
+                            f_data['content'] = f_data['content'][:Configuration.indexed_chars]
+
                     b64_data = base64.b64encode(json.dumps(f_data, default=Tools.json_serial).encode("utf-8"))
                     if isinstance(b64_data, bytes):
                         b64_data = b64_data.decode("utf-8")
 
-                f_data.update(dict(content='', metadata=''))
-                row = None
-                last_error = None
-                for i in range(50):
+                    # try to send in a first attempt
+                    integrated = 0
                     try:
-                        row = db.insert_or_get_file(
-                            **f_data,
-                            index_id=self.index_id,
-                            integrated=integrated,
-                            data=b64_data
-                        )
-                        if row is None:
-                            last_error = Exception('database register is none')
-                        break
-                    except sqlite3.OperationalError as e:
-                        last_error = e
-                        if 'locked' in str(e):
-                            time.sleep(0.5 * float(i))
-                            if i >= 20:
-                                db.reconnect()
-                if row is None and not Configuration.continue_on_error:
-                    Color.pl(
-                        '{!} {R}error: Cannot insert file {G}%s{R}: {O}%s{W}\r\n' % (path.path_real, str(last_error)))
-                    raise KeyboardInterrupt()
+
+                        if isinstance(f_data.get('content', ''), bytes):
+                            f_data['content'] = f_data.get('content', bytes()).decode('utf-8', 'ignore')
+
+                        if f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
+                            f_data['content'] = f_data['content'][:Configuration.indexed_chars]
+
+                        if not Configuration.index_empty_files and \
+                                (f_data.get('content', None) is None or len(f_data.get('content', '')) == 0):
+                            Crawler.ignored += 1
+                        else:
+                            self.send_to_elastic(**f_data)
+                            Crawler.integrated += 1
+
+                        integrated = 1
+                        b64_data = ''
+                    except Exception as e:
+                        if Configuration.verbose >= 4:
+                            Tools.print_error(Exception(f'Error integrating git data from: {path.path_virtual}', str(e)))
+                        pass
+
+                    row = None
+                    last_error = None
+                    for i in range(50):
+                        try:
+                            row = db.insert_or_get_file(
+                                **f_data,
+                                index_id=self.index_id,
+                                integrated=integrated,
+                                data=b64_data
+                            )
+                            if row is None:
+                                last_error = Exception('database register is none')
+                            break
+                        except sqlite3.OperationalError as e:
+                            last_error = e
+                            if 'locked' in str(e):
+                                time.sleep(0.5 * float(i))
+                                if i >= 20:
+                                    db.reconnect()
+                    if row is None and not Configuration.continue_on_error:
+                        Color.pl(
+                            '{!} {R}error: Cannot insert file {G}%s{R}: {O}%s{W}\r\n' % (path.path_real, str(last_error)))
+                        raise KeyboardInterrupt()
+            except KeyboardInterrupt as e:
+                raise e
+            except Exception as e:
+                if Configuration.verbose >= 3:
+                    Tools.print_error(Exception(f'Error getting git data from: {path.path_virtual}', e))
 
     def process_file(self, db: CrawlerDB, file: File):
+
+        if Configuration.verbose >= 3:
+            Color.pl('{*} {GR}processing %s{W}' % file.path_virtual)
 
         if ContainerFile.is_container(file):
             with(ContainerFile(file)) as container:
@@ -497,6 +552,9 @@ class Crawler(CrawlerBase):
                         if 'locked' in str(e):
                             time.sleep(1)
 
+        if Configuration.verbose >= 3:
+            Color.pl('{*} {GR}finishing processor for %s{W}' % file.path_virtual)
+
     def send_to_elastic(self, **data):
 
         id = data['fingerprint']
@@ -508,6 +566,8 @@ class Crawler(CrawlerBase):
             if res is None or res.get('_shards', {}).get('successful', 0) == 0:
                 if not Configuration.continue_on_error:
                     raise Exception(f'Cannot insert elasticsearch data: {res}')
+
+            return res
 
             #if res.get('result', '') != 'created':
             #    print(res)

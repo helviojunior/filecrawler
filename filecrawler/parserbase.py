@@ -116,8 +116,11 @@ class ParserBase(object):
     def parse(self, file: File) -> dict:
         raise Exception('Method "parse" is not yet implemented.')
 
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        raise Exception('Method "parse_from_bytes" is not yet implemented.')
+
     @classmethod
-    def lookup_credentials(cls, text) -> dict:
+    def lookup_credentials(cls, data: [str, bytes]) -> dict:
         data = {}
         '''
         data['credentials'] = [
@@ -173,13 +176,18 @@ class ParserBase(object):
         return data
 
     @classmethod
-    def get_readable_data(cls, file: File) -> str:
+    def get_readable_data(cls, file: [File, bytes]) -> str:
         from filecrawler.config import Configuration
 
-        with open(file.path, 'rb') as f:
-            if Configuration.indexed_chars > 0:
-                bData = f.read(Configuration.indexed_chars)
-            else:
-                bData = f.read()
+        if isinstance(file, File):
+            with open(file.path, 'rb') as f:
+                if Configuration.indexed_chars > 0:
+                    bData = f.read(Configuration.indexed_chars)
+                else:
+                    bData = f.read()
+        elif isinstance(file, bytes):
+            bData = file
+        else:
+            bData = bytes()
 
         return bData.decode('utf-8', 'ignore')

@@ -17,6 +17,14 @@ class CertificateParser(ParserBase):
         super().__init__('Certificate Parser', 'Parser for Certificate files')
 
     def parse(self, file: File) -> dict:
+        data = {'content': self.get_readable_data(file)}
+        return self._parse(data, file.path.read_bytes())
+
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        data = {'content': self.get_readable_data(file_data)}
+        return self._parse(data, file_data)
+
+    def _parse(self, data: dict, content: bytes) -> dict:
         from filecrawler.config import Configuration
         from OpenSSL import crypto
 
@@ -29,15 +37,12 @@ class CertificateParser(ParserBase):
         PKCS#12 bundles of private key + certificate(s)
         '''
 
-        data = {'content': self.get_readable_data(file)}
-
-        bData = file.path.read_bytes()
         cert = None
         try:
-            cert = crypto.load_certificate(crypto.FILETYPE_PEM, bData)
+            cert = crypto.load_certificate(crypto.FILETYPE_PEM, content)
         except:
             try:
-                cert = crypto.load_certificate(crypto.FILETYPE_ASN1, bData)
+                cert = crypto.load_certificate(crypto.FILETYPE_ASN1, content)
             except:
                 pass
 
@@ -49,5 +54,3 @@ class CertificateParser(ParserBase):
             data['content'] = dmp
 
         return data
-
-

@@ -34,4 +34,16 @@ class XMLParser(ParserBase):
 
         return data
 
+    def parse_from_bytes(self, file_data: bytes) -> dict:
+        from filecrawler.config import Configuration
+        data = {'content': self.get_readable_data(file_data)}
+
+        if Configuration.xml_support:
+            try:
+                data_dict = xmltodict.parse(file_data)
+                data['object_content'] = json.loads(data_dict)
+            except:
+                pass
+
+        return data
 
