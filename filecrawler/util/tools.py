@@ -162,6 +162,28 @@ class Tools:
         return ver
 
     @staticmethod
+    def get_git_version():
+        """Returns the string for the current version of Git installed."""
+        proc = subprocess.Popen(['git', '--version'], stdout=subprocess.PIPE)
+        ver = None
+
+        p = re.compile(r"version ([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})")
+
+        if proc.wait() == 0:
+            for line in proc.stdout.read().splitlines():
+                # E.g. git version 2.37.3
+                if isinstance(line, bytes):
+                    line = line.decode("utf-8")
+                line = line.strip().lower()
+                m = p.search(line)
+                if m is not None and m.group(1) is not None:
+                    ver = m.group(1)
+                if ver is not None:
+                    break
+
+        return ver
+
+    @staticmethod
     def to_datetime(epoch: [int, float]) -> datetime.datetime:
         return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=epoch)
 
@@ -183,7 +205,7 @@ class Tools:
         return f.from_buffer(open(file_path, "rb").read(2048)).lower()
 
     @staticmethod
-    def get_mimes(file_path: str) -> str:
+    def get_mimes(data: str) -> str:
         import magic
         from filecrawler.config import Configuration
 
@@ -192,7 +214,7 @@ class Tools:
             f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
         else:
             f = magic.Magic(mime=True)
-        return f.from_buffer(open(file_path, "rb").read(2048)).lower()
+        return f.from_buffer(data.encode("UTF-8")).lower()
 
     @staticmethod
     def json_serial(obj):

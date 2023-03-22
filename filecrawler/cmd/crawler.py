@@ -336,7 +336,7 @@ class Crawler(CrawlerBase):
         for f in files:
             yield File(base_path, f, container_path)
 
-        if os.path.isdir(os.path.join(here, '.git')):
+        if os.path.isdir(os.path.join(here, '.git')) and Configuration.git_support:
             yield CPath(base_path, Path(os.path.join(here, '.git')).resolve(), container_path)
 
         if recursive:
@@ -368,7 +368,7 @@ class Crawler(CrawlerBase):
                     self.send_to_elastic(**f_data)
                     Crawler.integrated += 1
                     integrated = 1
-                except:
+                except Exception as e:
                     b64_data = base64.b64encode(json.dumps(f_data, default=Tools.json_serial).encode("utf-8"))
                     if isinstance(b64_data, bytes):
                         b64_data = b64_data.decode("utf-8")

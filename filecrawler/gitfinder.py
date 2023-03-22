@@ -1,7 +1,9 @@
+import datetime
 import hashlib
+import json
 import os
-from collections import Iterator
 from pathlib import Path
+from typing import Iterator
 
 from filecrawler.libs.cpath import CPath
 from filecrawler.util.tools import Tools
@@ -49,7 +51,7 @@ class GitFinder(object):
                     # Update the stats with the additional information
                     opath = Path(os.path.join(self._git_path.path_virtual, objpath))
                     stats.update({
-                        'object': str(opath),
+                        'object': str(objpath),
                         'commit': commit.hexsha,
                         'author': commit.author.email,
                         'timestamp': commit.authored_datetime.strftime(self._DATE_TIME_FORMAT),
@@ -64,30 +66,31 @@ class GitFinder(object):
                         content += diff.a_blob.data_stream.read().decode('utf-8')
                         mime = Tools.get_mimes(diff.a_blob.data_stream.read().decode('utf-8'))
 
-                    if diff.a_blob is not None:
+                    if diff.b_blob is not None:
                         content += f"\n\n+++ {objpath}\n"
                         content += diff.b_blob.data_stream.read().decode('utf-8')
                         mime = Tools.get_mimes(diff.b_blob.data_stream.read().decode('utf-8'))
 
                     yield dict(
-                        fingerprint=self._diff_fingerprint(commit),
-                        filename=f'{self._git_path.path_virtual}/.gitcommit/{commit.hexsha}/{objpath.strip("/")}',
+                        fingerprint=self._diff_fingerprint(stats),
+                        filename=opath.name,
                         extension=opath.suffix,
                         mime_type=mime,
                         file_size=self._diff_size(diff),
                         created=commit.authored_datetime,
                         last_accessed=commit.authored_datetime,
                         last_modified=commit.authored_datetime,
-                        indexing_date=commit.authored_datetime,
+                        indexing_date=datetime.datetime.utcnow(),
                         path_real=self._git_path.path_real,
-                        path_virtual=f'{self._git_path.path_virtual}/.gitcommit/{commit.hexsha}',
-                        metadata=stats,
+                        path_virtual=f'{self._git_path.path_virtual}/<gitcommit>/{commit.hexsha}/{objpath.strip("/")}',
+                        metadata=json.dumps(stats, default=Tools.json_serial),
                         content=content
                     )
 
-    def _diff_fingerprint(self, commit):
+    def _diff_fingerprint(self, stats):
         sha1sum = hashlib.sha1()
-        sha1sum.update(f'{self._git_path}_{commit.hexsha}'.encode("utf-8"))
+        sha1sum.update(f'{self._git_path}'.encode("utf-8"))
+        sha1sum.update(json.dumps(stats, default=Tools.json_serial).encode("utf-8"))
 
         return sha1sum.hexdigest()
 

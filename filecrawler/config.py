@@ -352,6 +352,19 @@ class Configuration(object):
 
         Logger.pl('     {C}index path:{O} %s{W}' % Configuration.path)
 
+        if Configuration.git_support:
+            git_ver = Tools.get_git_version()
+            if git_ver is None:
+                Configuration.git_support = False
+                Color.pl((
+                    '{!} {O}Warning:{W} failed to find git client. Git crawling is disabled. '
+                    'Check your installation{W}'))
+                Color.pl('     {GR}Linux: apt-get install git{W}')
+                Color.pl('     {GR}MacOS: brew install git{W}')
+                Color.pl('     {GR}Windows: install git from https://gitforwindows.org/{W}')
+            else:
+                Logger.pl('     {C}git version:{O} %s{W}' % git_ver)
+
         print('  ')
 
     @staticmethod
