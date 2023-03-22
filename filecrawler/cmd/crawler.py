@@ -14,7 +14,9 @@ import elastic_transport
 
 from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
+from filecrawler.gitfinder import GitFinder
 from filecrawler.libs.containerfile import ContainerFile
+from filecrawler.libs.cpath import CPath
 from filecrawler.libs.file import File
 from filecrawler.libs.worker import Worker
 from filecrawler.parserbase import ParserBase
@@ -122,16 +124,16 @@ class Crawler(CrawlerBase):
                             'created': {'type': 'date'},
                             'last_accessed': {'type': 'date'},
                             'last_modified': {'type': 'date'},
-                            'fingerprint': {'type': 'text'},
+                            'fingerprint': {'type': 'keyword'},
                             'filename': {'type': 'text'},
-                            'extension': {'type': 'text'},
-                            'mime_type': {'type': 'text'},
+                            'extension': {'type': 'keyword'},
+                            'mime_type': {'type': 'keyword'},
                             'file_size': {'type': 'long'},
                             'path_virtual': {'type': 'text'},
                             'path_real': {'type': 'text'},
                             'content': {'type': 'text'},
                             'metadata': {'type': 'text'},
-                            'parser': {'type': 'text'},
+                            'parser': {'type': 'keyword'},
                             'object_content': {'type': 'flattened'},
                             'aws_credentials': {'type': 'flattened'},
                             'credentials': {'type': 'flattened'},
@@ -170,7 +172,7 @@ class Crawler(CrawlerBase):
                 try:
 
                     fl_count = 0
-                    for f in self.list_files(base_path=Path(Configuration.path), path=Path(Configuration.path)):
+                    for f in self._list_objects(base_path=Path(Configuration.path), path=Path(Configuration.path)):
                         if not t.running or not ing.running:
                             break
 
@@ -221,7 +223,10 @@ class Crawler(CrawlerBase):
 
     def file_callback(self, worker, entry, thread_callback_data, thread_count, **kwargs):
         try:
-            self.process_file(db=thread_callback_data, file=entry)
+            if isinstance(entry, File):
+                self.process_file(db=thread_callback_data, file=entry)
+            elif isinstance(entry, CPath):
+                self.process_path(db=thread_callback_data, path=entry)
         except KeyboardInterrupt as e:
             worker.close()
         except Exception as e:
@@ -281,7 +286,7 @@ class Crawler(CrawlerBase):
                                 raise KeyboardInterrupt()
 
                     #Crawler.integrated += 1
-                    db.update('file_index', filter_data=dict(file_id=file_id), integrated=1)
+                    db.update('file_index', filter_data=dict(file_id=file_id), integrated=1, data='')
 
             except sqlite3.OperationalError as e:
                 if 'locked' in str(e):
@@ -320,7 +325,7 @@ class Crawler(CrawlerBase):
         except Exception as e:
             Tools.print_error(e)
 
-    def list_files(self, base_path: Path, path: Path, recursive: bool = True, container_path: File = None):
+    def _list_objects(self, base_path: Path, path: Path, recursive: bool = True, container_path: File = None):
         here = str(path.resolve())
         files = [
             Path(os.path.join(here, name)).resolve()
@@ -330,6 +335,9 @@ class Crawler(CrawlerBase):
 
         for f in files:
             yield File(base_path, f, container_path)
+
+        if os.path.isdir(os.path.join(here, '.git')):
+            yield CPath(base_path, Path(os.path.join(here, '.git')).resolve(), container_path)
 
         if recursive:
             dirs = [
@@ -342,11 +350,53 @@ class Crawler(CrawlerBase):
             ]
 
             for d in dirs:
-                yield from self.list_files(
+                yield from self._list_objects(
                     base_path=base_path,
                     path=d,
                     recursive=recursive,
                     container_path=container_path)
+
+    def process_path(self, db: CrawlerDB, path: CPath):
+        if path.name == '.git' and Configuration.git_support:
+            git = GitFinder(path)
+            for f_data in git.get_diffs():
+                Crawler.read += 1
+                integrated = 0
+                b64_data = ''
+
+                try:
+                    self.send_to_elastic(**f_data)
+                    Crawler.integrated += 1
+                    integrated = 1
+                except:
+                    b64_data = base64.b64encode(json.dumps(f_data, default=Tools.json_serial).encode("utf-8"))
+                    if isinstance(b64_data, bytes):
+                        b64_data = b64_data.decode("utf-8")
+
+                f_data.update(dict(content='', metadata=''))
+                row = None
+                last_error = None
+                for i in range(50):
+                    try:
+                        row = db.insert_or_get_file(
+                            **f_data,
+                            index_id=self.index_id,
+                            integrated=integrated,
+                            data=b64_data
+                        )
+                        if row is None:
+                            last_error = Exception('database register is none')
+                        break
+                    except sqlite3.OperationalError as e:
+                        last_error = e
+                        if 'locked' in str(e):
+                            time.sleep(0.5 * float(i))
+                            if i >= 20:
+                                db.reconnect()
+                if row is None and not Configuration.continue_on_error:
+                    Color.pl(
+                        '{!} {R}error: Cannot insert file {G}%s{R}: {O}%s{W}\r\n' % (path.path_real, str(last_error)))
+                    raise KeyboardInterrupt()
 
     def process_file(self, db: CrawlerDB, file: File):
 
@@ -354,8 +404,12 @@ class Crawler(CrawlerBase):
             with(ContainerFile(file)) as container:
                 out_path = container.extract()
                 if out_path is not None:
-                    for f in self.list_files( base_path=out_path, path=out_path, recursive=True, container_path=file):
-                        self.process_file(db=db, file=f)
+                    for f in self._list_objects(base_path=out_path, path=out_path, recursive=True, container_path=file):
+                        if isinstance(f, File):
+                            self.process_file(db=db, file=f)
+                        elif isinstance(f, CPath):
+                            self.process_path(db=db, path=f)
+
         else:
 
             if Crawler.ignore(file):
@@ -417,9 +471,15 @@ class Crawler(CrawlerBase):
                 # try to send in a first attempt
                 integrated = 0
                 try:
-                    self.send_to_elastic(**data)
+                    if not Configuration.index_empty_files and \
+                            (data.get('content', None) is None or len(data.get('content', '')) == 0):
+                        Crawler.ignored += 1
+                    else:
+                        self.send_to_elastic(**data)
+                        Crawler.integrated += 1
+
                     integrated = 1
-                    Crawler.integrated += 1
+                    b64_data = ''
                 except:
                     pass
 

@@ -334,7 +334,7 @@ class Database(object):
             except (AttributeError, ProgrammingError) as e:
                 raise Exception(f'Fail connecting to SQLite file: {self.db_name}', e)
 
-        shutil.copy(self.db_name, f'{self.db_name}.bkp')
+        #shutil.copy(self.db_name, f'{self.db_name}.bkp')
 
         with conn:  # auto-commits
             with contextlib.closing(conn.cursor()) as cursor:  # auto-closes

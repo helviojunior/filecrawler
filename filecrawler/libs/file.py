@@ -4,18 +4,13 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from filecrawler.libs.cpath import CPath
 from filecrawler.util.tools import Tools
-from typing import TypeVar
-
-TFile = TypeVar("TFile", bound="File")
 
 
-class File(object):
-    _file = None
+class File(CPath):
     _hash = None
     _fingerprint = None
-    _path_real = None
-    _path_virtual = None
     _stats = None
     _metadata = []
     _content = None
@@ -23,31 +18,21 @@ class File(object):
     _size = 0
     _credentials = []
 
-    def __init__(self, base_path: [str, Path],  file_path: [str, Path], container_path: TFile = None):
-        self._file = Path(file_path)
+    def __init__(self, base_path: [str, Path],  file_path: [str, Path], container_path: CPath = None):
+        super().__init__(
+            base_path=base_path,
+            path=file_path,
+            container_path=container_path
+        )
 
-        if not self._file.exists():
-            raise FileNotFoundError(f'File not found: {self._file}')
+        if not self._path.is_file():
+            raise FileNotFoundError(f'Path is not a file instance: {self._path}')
 
-        base_path = str(Path(base_path).resolve())
-        self._path_real = str(self._file.resolve())
-        self._path_virtual = self._path_real.replace(base_path, '').strip('\\/ ')
-
-        if container_path is not None:
-            self._path_real = container_path.path_real + f'/{self._path_virtual}'
-            self._path_virtual = container_path.path_virtual + f'/{self._path_virtual}'
-
-        self._path_virtual = '/' + self._path_virtual.replace('\\\\', '/').replace('\\', '/').replace('//', '/').lstrip('\\/ ')
-
-        self._stats = self._file.stat()
-
-    @property
-    def path(self) -> Path:
-        return self._file
+        self._stats = self._path.stat()
 
     @property
     def fingerprint(self):
-        if self._file is None:
+        if self._path is None:
             return None
 
         if self._fingerprint is not None:
@@ -60,27 +45,19 @@ class File(object):
         return self._fingerprint
 
     @property
-    def path_real(self) -> str:
-        return self._path_real
-
-    @property
-    def path_virtual(self) -> str:
-        return self._path_virtual
-
-    @property
     def size(self) -> int:
         return self._stats.st_size
 
     @property
     def hash(self):
-        if self._file is None:
+        if self._path is None:
             return None
 
         if self._hash is not None:
             return self._hash
 
         sha1sum = hashlib.sha1()
-        with open(self._file, 'rb') as source:
+        with open(self._path, 'rb') as source:
             block = source.read(2 ** 16)
             while len(block) != 0:
                 sha1sum.update(block)
@@ -91,27 +68,27 @@ class File(object):
 
     @property
     def extension(self) -> Optional[str]:
-        if self._file is None:
+        if self._path is None:
             return None
         
-        return self._file.suffix.lower().strip('. ')
+        return self._path.suffix.lower().strip('. ')
 
     @property
     def mime(self) -> Optional[str]:
-        if self._file is None:
+        if self._path is None:
             return None
 
         if self._mime_type is not None:
             return self._mime_type
 
-        self._mime_type = Tools.get_mime(str(self._file))
+        self._mime_type = Tools.get_mime(str(self._path))
         return self._mime_type
 
     @property
     def db_dict(self) -> dict:
         return dict(
             fingerprint=self.fingerprint,
-            filename=self._file.name,
+            filename=self._path.name,
             extension=self.extension,
             mime_type=self.mime,
             file_size=self._stats.st_size,

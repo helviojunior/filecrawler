@@ -44,7 +44,8 @@ class ContainerFile(object):
             return
 
         try:
-            os.unlink(self._temp_path)
+            import shutil
+            shutil.rmtree(self._temp_path, ignore_errors=True)
         except:
             pass
 
@@ -93,11 +94,14 @@ class ContainerFile(object):
         if not Configuration.extract_files:
             return False
 
-        from py7zr import SevenZipFile
-        with SevenZipFile(str(self._file.path), 'r') as zObject:
-            zObject.extractall(path=self._temp_path)
+        try:
+            from py7zr import SevenZipFile
+            with SevenZipFile(str(self._file.path), 'r') as zObject:
+                zObject.extractall(path=self._temp_path)
 
-        return True
+            return True
+        except:
+            return False
 
     def extract_zip(self) -> bool:
         from filecrawler.config import Configuration
@@ -118,23 +122,28 @@ class ContainerFile(object):
         if not Configuration.extract_files:
             return False
 
-        from rarfile import RarFile
-        with RarFile(str(self._file.path), 'r') as rObject:
-            rObject.extractall(path=self._temp_path)
+        try:
+            from rarfile import RarFile
+            with RarFile(str(self._file.path), 'r') as rObject:
+                rObject.extractall(path=self._temp_path)
 
-        return True
+            return True
+        except:
+            return False
 
     def extract_tar(self) -> bool:
         from filecrawler.config import Configuration
         if not Configuration.extract_files:
             return False
 
-        return False
-
-        import tarfile
-        with tarfile.open(str(self._file.path), 'r') as tObject:
-            tObject.extractall(self._temp_path)
-        return True
+        try:
+            #TODO: Check TAR Lib lib
+            import tarfile
+            with tarfile.open(str(self._file.path), 'r') as tObject:
+                tObject.extractall(self._temp_path)
+            return True
+        except:
+            return False
 
     def extract_gz(self) -> bool:
         from filecrawler.config import Configuration
@@ -172,14 +181,17 @@ class ContainerFile(object):
         if not Configuration.extract_files:
             return False
 
-        self.create_folder()
-        import bz2
-        nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
-        with bz2.open(str(self._file.path), mode='rb') as entrada:
-            with open(nf, 'wb') as saida:
-                shutil.copyfileobj(entrada, saida)
+        try:
+            self.create_folder()
+            import bz2
+            nf = os.path.join(self._temp_path, self._file.path.name.replace(f'.{self._file.path.suffix}', ''))
+            with bz2.open(str(self._file.path), mode='rb') as entrada:
+                with open(nf, 'wb') as saida:
+                    shutil.copyfileobj(entrada, saida)
 
-        return True
+            return True
+        except:
+            return False
 
     def extract_jar(self) -> bool:
         from filecrawler.config import Configuration

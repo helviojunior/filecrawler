@@ -38,22 +38,29 @@ class Configuration(object):
 
     indexed_chars = '-1'
     excludes = [
-                   '*/~*', '*/.git/*', '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png', '*/*.css', '*/*.gif',
-                   '*/*.ttf', '*/*.woff', '*/*.wof2', '*/*.pyc', '*/.idea/*'
-               ]
+        '*/~*', '*/.idea/*', '*/.svn/*', '*/.pyenv/*'
+        '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png',  '*/*.gif', '*/*.ico',
+        '*/*.css', '*/*.html', '*/*.htm',
+        '*/*.ttf', '*/*.woff', '*/*.wof2',
+        '*/*.pyc',
+        '*/*.exe', '*/*.dll', '*/*.msi',
+        '*/*.emf', '*/*.bdb', '*/*.vox', '*/*.bin', '*/*.dat', '*/*.pkl',
+        '*/*.parquet', '*/*.parq',
+    ]
     json_support = False
     filename_as_id = False
     add_filesize = True
     remove_deleted = True
     add_as_inner_object = False
     store_source = False
-    index_content = True
+    index_empty_files = False
     attributes_support = False
     raw_metadata = False
     xml_support = False
     lang_detect = False
     jar_support = True
     apk_support = True
+    git_support = True
     extract_files = True
     continue_on_error = True
     ignore_above = '10M'
@@ -210,11 +217,12 @@ class Configuration(object):
                             'filename_as_id': Configuration.filename_as_id,
                             'jar_support': Configuration.jar_support,
                             'apk_support': Configuration.apk_support,
+                            'git_support': Configuration.git_support,
                             'add_filesize': Configuration.add_filesize,
                             'remove_deleted': Configuration.remove_deleted,
                             'add_as_inner_object': Configuration.add_as_inner_object,
                             'store_source': Configuration.store_source,
-                            'index_content': Configuration.index_content,
+                            'index_empty_files': Configuration.index_empty_files,
                             'attributes_support': Configuration.attributes_support,
                             'raw_metadata': Configuration.raw_metadata,
                             'xml_support': Configuration.xml_support,
@@ -263,12 +271,18 @@ class Configuration(object):
                     Configuration.follow_symlinks = general.get('follow_symlinks', Configuration.follow_symlinks)
                     Configuration.jar_support = general.get('jar_support', Configuration.jar_support)
                     Configuration.apk_support = general.get('apk_support', Configuration.apk_support)
+                    Configuration.git_support = general.get('git_support', Configuration.git_support)
                     Configuration.extract_files = general.get('extract_files', Configuration.extract_files)
+                    Configuration.index_empty_files = general.get('index_empty_files', Configuration.index_empty_files)
 
                     # Lowercase
                     Configuration.excludes = [
                         x.lower().strip() for x in Configuration.excludes
                     ]
+
+                    # .git folder has an specific parser to diff contents
+                    Configuration.excludes += ['*/.git/*']
+
                     Configuration.excludes += [
                         x[:-1] for x in Configuration.excludes
                         if x[-2:] == '/*'
@@ -330,7 +344,6 @@ class Configuration(object):
             with(CrawlerDB(auto_create=True, db_name=Configuration.db_name)) as db:
                 pass
         except sqlite3.OperationalError as e:
-            print(e)
             Logger.pl(
                 '{!} {R}error: the database file exists but is not an SQLite or table structure was not created.{W}\r\n')
             exit(1)

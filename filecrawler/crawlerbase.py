@@ -92,7 +92,6 @@ class CrawlerBase(object):
             return db
 
         except sqlite3.OperationalError as e:
-            print(e)
             Logger.pl(
                 '{!} {R}error: the database file exists but is not an SQLite or table structure was not created. Use parameter {O}--create-db{R} command to create.{W}\r\n')
             exit(1)

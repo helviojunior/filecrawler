@@ -17,3 +17,6 @@
 * [ ] Web System credentials
 * [ ] System/API Tokens
 * [ ] Proxy data (credentials and address)
+* [ ] Cartão de crédito
+* [ ] CPF, CNPJ
+

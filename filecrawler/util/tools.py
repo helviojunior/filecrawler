@@ -183,6 +183,18 @@ class Tools:
         return f.from_buffer(open(file_path, "rb").read(2048)).lower()
 
     @staticmethod
+    def get_mimes(file_path: str) -> str:
+        import magic
+        from filecrawler.config import Configuration
+
+        p = platform.system().lower()
+        if p == 'windows':
+            f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
+        else:
+            f = magic.Magic(mime=True)
+        return f.from_buffer(open(file_path, "rb").read(2048)).lower()
+
+    @staticmethod
     def json_serial(obj):
         """JSON serializer for objects not serializable by default json code"""
 
