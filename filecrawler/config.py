@@ -38,7 +38,7 @@ class Configuration(object):
 
     indexed_chars = '-1'
     excludes = [
-        '*/~*', '*/.idea/*', '*/.svn/*', '*/.pyenv/*'
+        '*/~*', '*/.idea/*', '*/.svn/*', '*/.pyenv/*',
         '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png',  '*/*.gif', '*/*.ico',
         '*/*.css', '*/*.html', '*/*.htm',
         '*/*.ttf', '*/*.woff', '*/*.wof2',
