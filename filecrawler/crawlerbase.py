@@ -4,6 +4,7 @@ import pkgutil
 import random
 import sqlite3
 import string
+import sys
 from argparse import _ArgumentGroup, ArgumentParser, Namespace
 from pathlib import Path
 
@@ -15,6 +16,9 @@ from filecrawler.util.logger import Logger
 
 
 class CrawlerBase(object):
+    _stdout = None
+    _stderr = None
+
     help_show = True
     check_database = True
     name = ''
@@ -26,6 +30,28 @@ class CrawlerBase(object):
         self.description = description
         self.help_show = help_show
         pass
+
+    @classmethod
+    def write_status(cls, text):
+        print(text, file=CrawlerBase._stderr, end='\r', flush=True)
+
+    @classmethod
+    def clear_line(cls):
+        try:
+            size = os.get_terminal_size(fd=os.STDOUT_FILENO)
+        except:
+            size = 80
+
+        print((" " * size), end='\r', flush=True)
+        print((" " * size), file=CrawlerBase._stderr, end='\r', flush=True)
+
+    @staticmethod
+    def get_system_defaults():
+        if CrawlerBase._stdout is None:
+            CrawlerBase._stdout = sys.stdout
+
+        if CrawlerBase._stderr is None:
+            CrawlerBase._stderr = sys.stderr
 
     @classmethod
     def get_base_module(cls) -> str:
@@ -54,7 +80,7 @@ class CrawlerBase(object):
                     importlib.import_module(f'{base_module}.{modname}')
 
             if verbose:
-                print('')
+                Logger.pl('')
 
             for iclass in CrawlerBase.__subclasses__():
                 t = iclass()

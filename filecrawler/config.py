@@ -207,7 +207,7 @@ class Configuration(object):
                 c = input()
                 if c.lower() == 'n':
                     exit(0)
-                    print(' ')
+                    Logger.pl(' ')
 
                 sample_config = {
                         'general': {
@@ -248,7 +248,7 @@ class Configuration(object):
                 data = dict(yaml.load(f, Loader=yaml.FullLoader))
                 if data is not None and data.get('general', None) is not None:
                     general = data.get('general', {})
-                    #print(data)
+                    #Logger.pl(data)
 
                     Configuration.indexed_chars = int(general.get('indexed_chars', Configuration.indexed_chars))
                     Configuration.excludes = general.get('excludes', Configuration.excludes)
@@ -365,7 +365,7 @@ class Configuration(object):
             else:
                 Logger.pl('     {C}git version:{O} %s{W}' % git_ver)
 
-        print('  ')
+        Logger.pl('  ')
 
     @staticmethod
     def get_banner():

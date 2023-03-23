@@ -147,7 +147,7 @@ class Crawler(CrawlerBase):
             )
 
 
-        #print(self.index_id)
+        #Logger.pl(self.index_id)
 
         #Logger.pl('{+} {C}Database created {O}%s{W}' % self.db_name)
 
@@ -246,21 +246,15 @@ class Crawler(CrawlerBase):
     def status(self, text, sync):
         try:
             while sync.running:
-                print(f' {text} read: {Crawler.read}, ignored: {Crawler.ignored}, integrated: {Crawler.integrated}',
-                      file=sys.stderr, end='\r', flush=True)
+                self.write_status(
+                    f' {text} read: {Crawler.read}, ignored: {Crawler.ignored}, integrated: {Crawler.integrated}')
                 time.sleep(0.3)
         except KeyboardInterrupt as e:
             raise e
         except:
             pass
         finally:
-            try:
-                size = os.get_terminal_size(fd=os.STDOUT_FILENO)
-            except:
-                size = 50
-
-            print((" " * size), end='\r', flush=True)
-            print((" " * size), file=sys.stderr, end='\r', flush=True)
+            self.clear_line()
 
     def integrator_callback(self, worker, entry, thread_callback_data, thread_count, **kwargs):
         try:
@@ -273,8 +267,8 @@ class Crawler(CrawlerBase):
                     b64_data = dt.get('data', None)
 
                     if b64_data is None or b64_data.strip() == '':
-                        print(f'Data is empty to {file_id}')
-                        print(dt)
+                        Logger.pl(f'Data is empty to {file_id}')
+                        Logger.p(dt)
 
                     if b64_data is not None and b64_data.strip() != '':
                         data = base64.b64decode(b64_data)
@@ -504,7 +498,7 @@ class Crawler(CrawlerBase):
                 raise KeyboardInterrupt()
 
             if row is not None and row['inserted']:
-                #print(file.path_virtual)
+                #Logger.pl(file.path_virtual)
                 #Process file content
                 parser = ParserBase.get_parser_instance(file.extension, file.mime)
                 data = file.db_dict
@@ -581,7 +575,7 @@ class Crawler(CrawlerBase):
             return res
 
             #if res.get('result', '') != 'created':
-            #    print(res)
+            #    Logger.pl(res)
 
 
 

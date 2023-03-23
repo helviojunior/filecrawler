@@ -210,25 +210,4 @@ class Process(object):
     def kill(code=0):
         ''' Deletes temp and exist with the given code '''
 
-        os.kill(os.getpid(),signal.SIGTERM)
-
-if __name__ == '__main__':
-    p = Process('ls')
-    print(p.stdout(), p.stderr())
-    p.interrupt()
-
-    # Calling as list of arguments
-    (out, err) = Process.call(['ls', '-lah'])
-    print(out, err)
-
-    print('\n---------------------\n')
-
-    # Calling as string
-    (out, err) = Process.call('ls -l | head -2')
-    print(out, err)
-
-    print('"reaver" exists:', Process.exists('reaver'))
-
-    # Test on never-ending process
-    p = Process('yes')
-    # After program loses reference to instance in 'p', process dies.
+        os.kill(os.getpid(), signal.SIGTERM)

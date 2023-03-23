@@ -220,8 +220,8 @@ class Tools:
         else:
             f = magic.Magic(mime=True)
 
-        #with StdHandler(['stderr']):
-        return f.from_buffer(data).lower()
+        with StdHandler(['stderr']):
+            return f.from_buffer(data).lower()
 
 
     @staticmethod

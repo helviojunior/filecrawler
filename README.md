@@ -213,6 +213,14 @@ Change the line bellow at the config file **/etc/neo4j/neo4j.conf** and restart 
 server.bolt.listen_address=0.0.0.0:7687
 ```
 
+# Inspiration
+
+This project was inspired of:
+
+1. [FSCrawler](https://fscrawler.readthedocs.io/en/latest/index.html)
+2. [Gitleaks](https://gitleaks.io/)
+
+
 # To do
 
 [Check the TODO file](TODO.md)

@@ -76,7 +76,7 @@ class FileCrawler(object):
 
         timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         Logger.pl('{+} {C}End time {O}%s{W}' % timestamp)
-        print(' ')
+        Logger.pl(' ')
 
     def print_banner(self):
         """ Displays ASCII art of the highest caliber.  """

@@ -90,7 +90,7 @@ class ParserBase(object):
                     importlib.import_module(f'{base_parser}.{modname}')
 
             if verbose:
-                print('')
+                Logger.pl('')
 
             for iclass in ParserBase.__subclasses__():
                 t = iclass()
