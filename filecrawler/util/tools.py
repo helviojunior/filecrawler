@@ -2,14 +2,13 @@
 # -*- coding: UTF-8 -*-
 import base64
 import datetime
+import io
 import os
 import platform
 import string, random, sys, re
 import subprocess
 import unicodedata
 from tabulate import _table_formats, tabulate
-
-from filecrawler.libs.stdhandler import StdHandler
 from filecrawler.util.color import Color
 
 
@@ -208,20 +207,17 @@ class Tools:
         if len(data) > 2048:
             data = data[:2048]
 
-        # Used to supress libmagic error 'lhs/off overflow 4294967295 0'
-        # https://bugs.astron.com/view.php?id=426
-        data = data.strip(bytes([0xff, 0x0a, 0x0a]))
-        if len(data) == 0:
-            return 'application/octet-stream'
-
         p = platform.system().lower()
         if p == 'windows':
             f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
         else:
             f = magic.Magic(mime=True)
 
-        with StdHandler(['stderr']):
+        try:
             return f.from_buffer(data).lower()
+        except Exception as e:
+            Tools.print_error(e)
+            return 'application/octet-stream'
 
 
     @staticmethod

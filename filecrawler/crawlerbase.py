@@ -29,6 +29,7 @@ class CrawlerBase(object):
         self.name = name
         self.description = description
         self.help_show = help_show
+        CrawlerBase.get_system_defaults()
         pass
 
     @classmethod

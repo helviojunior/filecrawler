@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import codecs
+import io
+import tempfile
+
+from .libs.process import Process
 
 try:
     from .config import Configuration
@@ -44,7 +48,7 @@ class FileCrawler(object):
 
         if missing_required:
             Color.pl('{!} {R}required app(s) were not found, exiting.{W}')
-            sys.Tools.exit_gracefully(-1)
+            sys.exit(-1)
 
         if missing_optional:
             Color.pl('{!} {O}recommended app(s) were not found')
@@ -82,11 +86,24 @@ class FileCrawler(object):
         """ Displays ASCII art of the highest caliber.  """
         Color.pl(Configuration.get_banner())
 
+    # Used to supress libmagic error 'lhs/off overflow 4294967295 0'
+    # https://bugs.astron.com/view.php?id=426
+    #  This code will suppress any child process stderr output
+    @staticmethod
+    def redirect_stderr():
+        new = os.dup(2)  # Create a copy of stderr (new)
+        sys.stderr = io.TextIOWrapper(os.fdopen(new, 'wb'))
+        _file = tempfile.TemporaryFile(mode='w+t')
+        os.dup2(_file.fileno(), 2)  # Redirect stdout into tmp
+
+
 def run():
     # Explicitly changing the stdout encoding format
     if sys.stdout.encoding is None:
         # Output is redirected to a file
         sys.stdout = codecs.getwriter('latin-1')(sys.stdout)
+
+    FileCrawler.redirect_stderr()
 
     o = FileCrawler()
     o.print_banner()

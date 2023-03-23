@@ -45,7 +45,7 @@ class Configuration(object):
         '*/*.pyc',
         '*/*.exe', '*/*.dll', '*/*.msi',
         '*/*.emf', '*/*.bdb', '*/*.vox', '*/*.bin', '*/*.dat', '*/*.pkl',
-        '*/*.parquet', '*/*.parq',
+        '*/*.parquet', '*/*.parq', '*/*.rsc',
     ]
     json_support = False
     filename_as_id = False
