@@ -407,6 +407,8 @@ class Crawler(CrawlerBase):
                         if f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
                             f_data['content'] = f_data['content'][:Configuration.indexed_chars]
 
+                        f_data['content'] = f_data.get('content', '').strip('\n\t ')
+
                         if not Configuration.index_empty_files and \
                                 (f_data.get('content', None) is None or len(f_data.get('content', '')) == 0):
                             Crawler.ignored += 1
@@ -526,6 +528,15 @@ class Crawler(CrawlerBase):
                 # try to send in a first attempt
                 integrated = 0
                 try:
+
+                    if isinstance(data.get('content', ''), bytes):
+                        data['content'] = data.get('content', bytes()).decode('utf-8', 'ignore')
+
+                    if data.get('content', None) is not None and Configuration.indexed_chars > 0:
+                        data['content'] = data['content'][:Configuration.indexed_chars]
+
+                    data['content'] = data.get('content', '').strip('\n\t ')
+
                     if not Configuration.index_empty_files and \
                             (data.get('content', None) is None or len(data.get('content', '')) == 0):
                         Crawler.ignored += 1

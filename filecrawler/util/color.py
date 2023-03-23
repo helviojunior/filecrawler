@@ -4,10 +4,14 @@
 import sys
 import colorama
 from colorama import Fore, Back, Style
-colorama.init()
+colorama.init(strip=False)
+
 
 class Color(object):
     ''' Helper object for easily printing colored text to the terminal. '''
+
+    _stdout = None
+    _stderr = None
 
     # Basic console colors
     colors = {
@@ -30,9 +34,15 @@ class Color(object):
         '{*}': ' {W}[{B}*{W}]'
     }
 
-
-
     last_sameline_length = 0
+
+    @staticmethod
+    def get_system_defaults():
+        if Color._stdout is None:
+            Color._stdout = sys.stdout
+
+        if Color._stderr is None:
+            Color._stderr = sys.stderr
 
     @staticmethod
     def p(text):
@@ -41,8 +51,8 @@ class Color(object):
         Example:
             Color.p("{R}This text is red. {W} This text is white")
         '''
-        sys.stdout.write(Color.s(text))
-        sys.stdout.flush()
+        Color._stdout.write(Color.s(text))
+        Color._stdout.flush()
         if '\r' in text:
             text = text[text.rfind('\r')+1:]
             Color.last_sameline_length = len(text)
@@ -58,7 +68,7 @@ class Color(object):
     @staticmethod
     def pe(text):
         '''Prints text using colored format with leading and trailing new line to STDERR.'''
-        sys.stderr.write(Color.s('%s\n' % text))
+        Color._stderr.write(Color.s('%s\n' % text))
         Color.last_sameline_length = 0
 
     @staticmethod
@@ -106,8 +116,5 @@ class Color(object):
         Color.p("\r{+} {G}%s{W} ({C}%sdb{W}) {G}%s {C}%s{W}: %s " % (
             essid, target.power, attack_type, attack_name, progress))
 
-if __name__ == '__main__':
-    Color.pl("{R}Testing{G}One{C}Two{P}Three{W}Done")
-    print(Color.s("{C}Testing{P}String{W}"))
-    Color.pl("{+} Good line")
-    Color.pl("{!} Danger")
+
+Color.get_system_defaults()

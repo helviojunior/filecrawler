@@ -1,3 +1,5 @@
+import sys
+
 from filecrawler.util.color import Color
 
 DEFAULT = 0

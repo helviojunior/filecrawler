@@ -49,57 +49,62 @@ class GitFinder(object):
                             if diff.b_path == path and diff.renamed:
                                 break
 
-                    # Update the stats with the additional information
-                    opath = Path(os.path.join(self._git_path.path_virtual, objpath))
-                    stats.update({
-                        'object': str(objpath),
-                        'commit': commit.hexsha,
-                        'author': commit.author.email,
-                        'message': '\n'.join([
-                            m for m in commit.message.strip('').replace('\r', '').split('\n')
-                            if m.strip() != ''
-                        ]) if commit.message is not None else '',
-                        'timestamp': commit.authored_datetime.strftime(self._DATE_TIME_FORMAT),
-                        'size': self._diff_size(diff),
-                        'type': self._diff_type(diff),
-                    })
+                    try:
+                        # Update the stats with the additional information
+                        opath = Path(os.path.join(self._git_path.path_virtual, objpath))
+                        stats.update(dict(
+                            branch=branch.name,
+                            commit=commit.hexsha,
+                            object=str(objpath),
+                            author=commit.author.email,
+                            message='\n'.join([
+                                m for m in commit.message.strip('').replace('\r', '').split('\n')
+                                if m.strip() != ''
+                            ]) if commit.message is not None else '',
+                            timestamp=commit.authored_datetime.strftime(self._DATE_TIME_FORMAT),
+                            type=self._diff_type(diff),
+                        ))
 
-                    if diff.a_blob is not None:
-                        bdata_a = diff.a_blob.data_stream.read()
-                        yield dict(
-                            fingerprint=self._diff_fingerprint(stats, 'a'),
-                            filename=opath.name,
-                            extension=opath.suffix.strip('. '),
-                            mime_type=Tools.get_mimes(bdata_a),
-                            file_size=self._diff_size(diff),
-                            created=commit.authored_datetime,
-                            last_accessed=commit.authored_datetime,
-                            last_modified=commit.authored_datetime,
-                            indexing_date=datetime.datetime.utcnow(),
-                            path_real=self._git_path.path_real,
-                            path_virtual=f'{self._git_path.path_virtual}/<gitcommit.a>/{commit.hexsha}/{objpath.strip("/")}',
-                            metadata=json.dumps(stats, default=Tools.json_serial),
-                            content=bdata_a
-                        )
-
-                    if diff.b_blob is not None:
-                        bdata_b = diff.b_blob.data_stream.read()
-                        if len(bdata_b) > 0:
+                        if diff.a_blob is not None:
+                            bdata_a = diff.a_blob.data_stream.read()
                             yield dict(
-                                fingerprint=self._diff_fingerprint(stats, 'b'),
+                                fingerprint=self._diff_fingerprint(stats, 'a'),
                                 filename=opath.name,
                                 extension=opath.suffix.strip('. '),
-                                mime_type=Tools.get_mimes(bdata_b),
-                                file_size=self._diff_size(diff),
+                                mime_type=Tools.get_mimes(bdata_a),
+                                file_size=diff.a_blob.size,
                                 created=commit.authored_datetime,
                                 last_accessed=commit.authored_datetime,
                                 last_modified=commit.authored_datetime,
                                 indexing_date=datetime.datetime.utcnow(),
                                 path_real=self._git_path.path_real,
-                                path_virtual=f'{self._git_path.path_virtual}/<gitcommit.b>/{commit.hexsha}/{objpath.strip("/")}',
+                                path_virtual=f'{self._git_path.path_virtual}/<gitcommit>/{branch.name}/{commit.hexsha}/blob_a/{objpath.strip("/")}',
                                 metadata=json.dumps(stats, default=Tools.json_serial),
-                                content=bdata_b
+                                content=bdata_a
                             )
+
+                        if diff.b_blob is not None:
+                            bdata_b = diff.b_blob.data_stream.read()
+                            if len(bdata_b) > 0:
+                                yield dict(
+                                    fingerprint=self._diff_fingerprint(stats, 'b'),
+                                    filename=opath.name,
+                                    extension=opath.suffix.strip('. '),
+                                    mime_type=Tools.get_mimes(bdata_b),
+                                    file_size=diff.b_blob.size,
+                                    created=commit.authored_datetime,
+                                    last_accessed=commit.authored_datetime,
+                                    last_modified=commit.authored_datetime,
+                                    indexing_date=datetime.datetime.utcnow(),
+                                    path_real=self._git_path.path_real,
+                                    path_virtual=f'{self._git_path.path_virtual}/<gitcommit>/{branch.name}/{commit.hexsha}/blob_b/{objpath.strip("/")}',
+                                    metadata=json.dumps(stats, default=Tools.json_serial),
+                                    content=bdata_b
+                                )
+                    except Exception as e:
+                        from filecrawler.config import Configuration
+                        if Configuration.verbose >= 4:
+                            Tools.print_error(Exception(f'Error parsing git data from: {self._git_path}', str(e)))
 
     def _diff_fingerprint(self, stats, salt: str = ''):
         sha1sum = hashlib.sha1()
@@ -107,22 +112,6 @@ class GitFinder(object):
         sha1sum.update(json.dumps(stats, default=Tools.json_serial).encode("utf-8"))
 
         return sha1sum.hexdigest()
-
-    @classmethod
-    def _diff_size(cls, diff):
-        """
-        Computes the size of the diff by comparing the size of the blobs.
-        """
-        if diff.b_blob is None and diff.deleted_file:
-            # This is a deletion, so return negative the size of the original.
-            return diff.a_blob.size
-
-        if diff.a_blob is None and diff.new_file:
-            # This is a new file, so return the size of the new value.
-            return diff.b_blob.size
-
-        # Otherwise just return the size a-b
-        return diff.a_blob.size - diff.b_blob.size
 
     @classmethod
     def _diff_type(cls, diff):

@@ -9,6 +9,7 @@ import subprocess
 import unicodedata
 from tabulate import _table_formats, tabulate
 
+from filecrawler.libs.stdhandler import StdHandler
 from filecrawler.util.color import Color
 
 
@@ -192,30 +193,35 @@ class Tools:
     def to_boolean(text: [str, bool]) -> bool:
         return bool(text)
 
-
     @staticmethod
     def get_mime(file_path: str) -> str:
-        import magic
-        from filecrawler.config import Configuration
-
-        p = platform.system().lower()
-        if p == 'windows':
-            f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
-        else:
-            f = magic.Magic(mime=True)
-        return f.from_buffer(open(file_path, "rb").read(2048)).lower()
+        return Tools.get_mimes(open(file_path, "rb").read(2048))
 
     @staticmethod
     def get_mimes(data: [str, bytes]) -> str:
         import magic
         from filecrawler.config import Configuration
 
+        if isinstance(data, str):
+            data = data.encode('utf-8', 'ignore')
+
+        if len(data) > 2048:
+            data = data[:2048]
+
+        # Used to supress libmagic error 'lhs/off overflow 4294967295 0'
+        # https://bugs.astron.com/view.php?id=426
+        data = data.strip(bytes([0xff, 0x0a, 0x0a]))
+        if len(data) == 0:
+            return 'application/octet-stream'
+
         p = platform.system().lower()
         if p == 'windows':
             f = magic.Magic(mime=True, magic_file=os.path.join(Configuration.lib_path, 'libmagic_windows', 'magic.mgc'))
         else:
             f = magic.Magic(mime=True)
-        return f.from_buffer(data.encode("UTF-8") if isinstance(data, str) else data).lower()
+
+        #with StdHandler(['stderr']):
+        return f.from_buffer(data).lower()
 
 
     @staticmethod
