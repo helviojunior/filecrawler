@@ -4,13 +4,15 @@
 
 O Objetivo deste tutorial é criar uma estrutura utilizando o ELK para indexar conteúdos de arquivos facilitando a busca durante um teste.
 
-No cenário utilizado obtivemos acesso a mais de 120GB de dados baixados de um GIT do cliente, sendo assim qualquer busca utilizando GREP seria praticamente impossível e demandaria muito tempo. Neste procedimento indexamos os arquivos uma unica vez dentro do ELK (processo este que demora de 2 a 3 horas dependendo do disco e quantidade de arquivos) e posteriormente as buscas são instanâneas.
+No cenário utilizado obtivemos acesso a mais de 120GB de dados baixados de um GIT do cliente, sendo assim qualquer busca utilizando GREP seria praticamente impossível e demandaria muito tempo. Sem contar que teriamos que identificar manualmente diversos arquivos compactados (zip, apk, jar e etc...) para extrair e analisar o seu conteúdo.
+
+Neste procedimento indexamos os arquivos uma unica vez dentro do ELK e posteriormente as buscas são instanâneas.
 
 Sem contar que temos a possibilidade de diversas consultas avançadas com a linguagem de consultas do ELK.
 
-## Dependencias gerais
+## Dependência gerais
 
-### Instalando outras dependencias
+### Instalando outras dependência
 
 ```
 apt install python3 python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools python3-venv unzip
@@ -231,4 +233,36 @@ echo "admin:`openssl passwd -apr1`" | sudo tee -a /etc/nginx/htpasswd.users
 ```
 sudo systemctl enable nginx
 sudo systemctl start nginx
+```
+
+## Instalando o FileCrawler
+
+### Dependências
+
+```bash
+apt install default-jre default-jdk libmagic-dev python3 python3-pip python3-dev
+```
+
+```bash
+pip3 install -U filecrawler
+```
+
+## Executando
+
+### Config file
+
+Crie o arquivo de configuração padrão com o comando abaixo
+
+```bash
+filecrawler --create-config -v
+```
+
+Edite o arquivo **config.yml** com os parâmetros desejados
+
+**Nota:** Caso o FileCrawler esteja rodando em outra máquina será necessário ajustar a URL do ELK no arquivo de configuração
+
+### Executando
+
+```bash
+filecrawler --index-name filecrawler --path /mnt/client_files --crawler --elastic -T 30 -v
 ```

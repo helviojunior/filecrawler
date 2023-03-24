@@ -61,7 +61,7 @@ class Crawler(CrawlerBase):
     def get_config_sample(self) -> dict:
         return {
             'elasticsearch': {
-                'nodes': [{'url': 'http://10.10.10.10:9200'}],
+                'nodes': [{'url': 'http://127.0.0.1:9200'}],
                 #'bulk_size': 200,
                 #'byte_size': '500K',
                 #'flush_interval': '2s'
