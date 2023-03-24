@@ -19,12 +19,13 @@ class SQLite3Parser(ParserBase):
 
         try:
             with Database(db_name=file.path, auto_create=False) as db:
-                tables = db.select_raw('SELECT m.tbl_name AS table_name FROM sqlite_master AS m')
+                tables = db.select_raw('SELECT m.tbl_name AS table_name FROM sqlite_master AS m', args={})
                 for t in tables:
                     rows = db.select(t['table_name'], **{})
                     content.update({t['table_name']: rows})
-        except:
-            pass
+        except Exception as e:
+            if Configuration.verbose >= 3:
+                Tools.print_error(e)
 
         data = {'content': json.dumps(content, default=Tools.json_serial, sort_keys=False, indent=2)}
         return data

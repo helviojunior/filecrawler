@@ -135,7 +135,7 @@ class Crawler(CrawlerBase):
                             'metadata': {'type': 'text'},
                             'has_credential': {'type': 'boolean'},
                             'parser': {'type': 'keyword'},
-                            'object_content': {'type': 'flattened'},
+                            'object_content': {'type': 'text'},
                             'credentials': {'type': 'flattened'},
                         }
                 }
