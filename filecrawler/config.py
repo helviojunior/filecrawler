@@ -134,7 +134,7 @@ class Configuration(object):
                 sys.exit(1)
 
             Configuration.create_config()
-            sys.exit(0)
+            return
 
         try:
             ParserBase.list_parsers(verbose=Configuration.verbose >= 2)

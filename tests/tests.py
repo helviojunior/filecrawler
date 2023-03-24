@@ -3,7 +3,7 @@ import codecs
 
 import pytest, sys
 
-from filecrawler.filecrawler import FileCrawler
+from filecrawler.filecrawler import FileCrawler, Configuration
 from filecrawler.util.color import Color
 
 
@@ -17,7 +17,11 @@ def test_create_config():
         o = FileCrawler()
         o.print_banner()
 
-        o.main()
+        o.dependency_check()
+
+        Configuration.initialize()
+
+        #o.main()
 
         assert True
         #sys.exit(0)
