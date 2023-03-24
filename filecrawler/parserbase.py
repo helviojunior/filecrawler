@@ -165,7 +165,7 @@ class ParserBase(object):
         if Configuration.raw_metadata:
             not_meta = ['X-TIKA:', 'pdf:unmappedUnicodeCharsPerPage', 'pdf:charsPerPage',
                         'Content-Length', 'Content-Type', 'ICC:', 'tiff:']
-            if data.get('metadata', None) is not None:
+            if data.get('metadata', None) is not None and isinstance(data.get('metadata', None), dict):
                 data['metadata'] = json.dumps(
                     {
                         k: v for k, v in parsed["metadata"].items()
