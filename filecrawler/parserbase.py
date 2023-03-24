@@ -6,9 +6,11 @@ import random
 import sqlite3
 import string
 from pathlib import Path
+from typing import Optional
 
 from filecrawler.libs.file import File
 from filecrawler.libs.parser import Parser
+from filecrawler.rulebase import RuleBase
 from filecrawler.util.color import Color
 from filecrawler.util.logger import Logger
 
@@ -120,17 +122,19 @@ class ParserBase(object):
         raise Exception('Method "parse_from_bytes" is not yet implemented.')
 
     @classmethod
-    def lookup_credentials(cls, data: [str, bytes]) -> dict:
-        data = {}
-        '''
-        data['credentials'] = [
-            {'username': 'fdsfsd', 'password': 'dsdas'}
-        ]
-        data['aws_credentials'] = [
-            {'aws_access_key_id': 'fdsfsd', 'aws_secret_access_key': 'dsadas', 'region': 'ds', 'username': 'fdsfsd', 'password': 'dsdas'}
-        ]
-        '''
-        return data
+    def lookup_credentials(cls, data: [str, bytes]) -> Optional[dict]:
+        if isinstance(data, bytes):
+            data = data.decode("utf-8", "ignore")
+
+        detect = RuleBase.detect(data)
+        if detect is None:
+            return None
+
+        detect.update(dict(
+            has_credential='credentials' in detect.keys()
+        ))
+
+        return detect
 
     @classmethod
     def ocr_file(cls, file: File) -> dict:

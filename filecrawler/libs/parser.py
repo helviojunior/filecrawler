@@ -16,7 +16,6 @@ class Parser(object):
         self._class = class_name
         self.extensions = [x.lower().strip(' .') for x in extensions]
         self.mime_types = [m.lower().strip(' .') for m in mime_types]
-        pass
 
     def __str__(self):
         return self.name

@@ -133,9 +133,9 @@ class Crawler(CrawlerBase):
                             'path_real': {'type': 'text'},
                             'content': {'type': 'text'},
                             'metadata': {'type': 'text'},
+                            'has_credential': {'type': 'boolean'},
                             'parser': {'type': 'keyword'},
                             'object_content': {'type': 'flattened'},
-                            'aws_credentials': {'type': 'flattened'},
                             'credentials': {'type': 'flattened'},
                         }
                 }
@@ -145,6 +145,7 @@ class Crawler(CrawlerBase):
                 index=Configuration.index_name,
                 body=request_body
             )
+
 
 
         #Logger.pl(self.index_id)
@@ -187,6 +188,7 @@ class Crawler(CrawlerBase):
                     t.wait_finish()
                     ing.wait_finish()
 
+                    Color.clear_entire_line()
                     Logger.pl('{+} {C}processors finished!{W}')
 
                 except KeyboardInterrupt as e:
@@ -383,6 +385,7 @@ class Crawler(CrawlerBase):
                         creds = parser.lookup_credentials(f_data.get('content', bytes()))
                         if creds is not None:
                             f_data.update(creds)
+                            self.save_credential(f_data['path_virtual'], f_data.get('content', bytes()), creds)
 
                         if f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
                             f_data['content'] = f_data['content'][:Configuration.indexed_chars]
@@ -511,6 +514,7 @@ class Crawler(CrawlerBase):
                     creds = parser.lookup_credentials(data.get('content', ''))
                     if creds is not None:
                         data.update(creds)
+                        self.save_credential(file.path_virtual, data.get('content', ''), creds)
 
                     if data.get('content', None) is not None and Configuration.indexed_chars > 0:
                         data['content'] = data['content'][:Configuration.indexed_chars]
@@ -560,8 +564,17 @@ class Crawler(CrawlerBase):
         if Configuration.verbose >= 3:
             Color.pl('{*} {GR}finishing processor for %s{W}' % file.path_virtual)
 
-    def send_to_elastic(self, **data):
+    def save_credential(self, file_path: str, content: str, credentials: dict):
+        if credentials is None:
+            return
 
+        if Configuration.verbose >= 2:
+            Color.pl('{?} {GR}Credential found at file {O}%s{GR}\n%s{W}\n' % (
+                file_path, json.dumps(credentials, default=Tools.json_serial, indent=2)))
+        elif Configuration.verbose >= 1:
+            Color.pl('{?} {GR}Credential found at file {O}%s{GR}' % file_path)
+
+    def send_to_elastic(self, **data):
         id = data['fingerprint']
         if Configuration.filename_as_id:
             id = data['path_virtual']

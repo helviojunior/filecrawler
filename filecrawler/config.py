@@ -10,6 +10,7 @@ import re
 
 from .libs.crawlerdb import CrawlerDB
 from .parserbase import ParserBase
+from .rulebase import RuleBase
 from .util.color import Color
 from .util.logger import Logger
 from .__meta__ import __version__, __description__
@@ -36,7 +37,7 @@ class Configuration(object):
     tasks = 5
     tasks_integrator = 2
 
-    indexed_chars = '-1'
+    indexed_chars = 1000000
     excludes = [
         '*/~*', '*/.idea/*', '*/.svn/*', '*/.pyenv/*',
         '*/*.svg', '*/*.jpeg', '*/*.jpg', '*/*.png',  '*/*.gif', '*/*.ico',
@@ -110,13 +111,24 @@ class Configuration(object):
             Configuration.cmd_line += "%s " % a
 
         module = args.get_module()
-        ParserBase.list_parsers()
+
+        Configuration.verbose = args.args.v
+
+        try:
+            ParserBase.list_parsers(verbose=Configuration.verbose >= 2)
+        except Exception as e:
+            Color.pl('{!} {R}error: failed to load parsers: {O}%s{W}\r\n' % str(e))
+            exit(1)
+
+        try:
+            RuleBase.list_rules(verbose=Configuration.verbose)
+        except Exception as e:
+            Color.pl('{!} {R}error: failed to load rules: {O}%s{W}\r\n' % str(e))
+            exit(1)
 
         if module is None:
             Color.pl('{!} {R}error: missing a mandatory option, use -h help{W}\r\n')
             exit(1)
-
-        Configuration.verbose = args.args.v
 
         java_ver = Tools.get_java_version()
         if java_ver is None:
