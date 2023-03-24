@@ -37,7 +37,7 @@ FileCrawler officially supports Python 3.7+.
 ### Dependencies
 
 ```bash
-apt install default-jre default-jdk libmagic-dev
+apt install default-jre default-jdk libmagic-dev git
 ```
 
 ### Installing FileCrawler

@@ -240,7 +240,7 @@ sudo systemctl start nginx
 ### Dependências
 
 ```bash
-apt install default-jre default-jdk libmagic-dev python3 python3-pip python3-dev
+apt install default-jre default-jdk libmagic-dev git python3 python3-pip python3-dev
 ```
 
 ```bash
