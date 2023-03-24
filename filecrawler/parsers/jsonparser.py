@@ -24,7 +24,7 @@ class JsonParser(ParserBase):
 
         if Configuration.json_support:
             try:
-                data['content'] = json.dumps(json.loads(data['content']), sort_keys=False, identy=2)
+                data['content'] = json.dumps(json.loads(data['content']), sort_keys=False, indent=2)
             except:
                 pass
 
@@ -36,7 +36,7 @@ class JsonParser(ParserBase):
 
         if Configuration.json_support:
             try:
-                data['content'] = json.dumps(json.loads(file_data.decode("UTF-8")), sort_keys=False, identy=2)
+                data['content'] = json.dumps(json.loads(file_data.decode("UTF-8")), sort_keys=False, indent=2)
             except:
                 pass
 

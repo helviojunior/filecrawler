@@ -165,12 +165,13 @@ class ParserBase(object):
         if Configuration.raw_metadata:
             not_meta = ['X-TIKA:', 'pdf:unmappedUnicodeCharsPerPage', 'pdf:charsPerPage',
                         'Content-Length', 'Content-Type', 'ICC:', 'tiff:']
-            data['metadata'] = json.dumps(
-                {
-                    k: v for k, v in parsed["metadata"].items()
-                    if not next((True for k1 in not_meta if k1.lower() in k.lower()), False)
-                },
-                sort_keys=True, indent=2)
+            if data.get('metadata', None) is not None:
+                data['metadata'] = json.dumps(
+                    {
+                        k: v for k, v in parsed["metadata"].items()
+                        if not next((True for k1 in not_meta if k1.lower() in k.lower()), False)
+                    },
+                    sort_keys=True, indent=2)
 
         content = parsed["content"]
         if content is None:

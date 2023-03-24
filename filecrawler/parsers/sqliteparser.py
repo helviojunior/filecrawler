@@ -26,6 +26,6 @@ class SQLite3Parser(ParserBase):
         except:
             pass
 
-        data = {'content': json.dumps(content, default=Tools.json_serial, sort_keys=False, identy=2)}
+        data = {'content': json.dumps(content, default=Tools.json_serial, sort_keys=False, indent=2)}
         return data
 

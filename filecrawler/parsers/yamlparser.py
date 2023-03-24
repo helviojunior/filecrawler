@@ -27,7 +27,7 @@ class YamlParser(ParserBase):
         try:
             with open(file.path, 'r') as f:
                 tmp = dict(yaml.load(f, Loader=yaml.FullLoader))
-                data['object_content'] = json.dumps(tmp, sort_keys=False, identy=2)
+                data['object_content'] = json.dumps(tmp, sort_keys=False, indent=2)
         except:
             pass
 
@@ -39,7 +39,7 @@ class YamlParser(ParserBase):
 
         try:
             tmp = dict(yaml.load(file_data, Loader=yaml.FullLoader))
-            data['object_content'] = json.dumps(tmp, sort_keys=False, identy=2)
+            data['object_content'] = json.dumps(tmp, sort_keys=False, indent=2)
         except:
             pass
 
