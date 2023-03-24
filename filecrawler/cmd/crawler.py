@@ -62,9 +62,9 @@ class Crawler(CrawlerBase):
         return {
             'elasticsearch': {
                 'nodes': [{'url': 'http://10.10.10.10:9200'}],
-                'bulk_size': 200,
-                'byte_size': '500K',
-                'flush_interval': '2s'
+                #'bulk_size': 200,
+                #'byte_size': '500K',
+                #'flush_interval': '2s'
             }
         }
 

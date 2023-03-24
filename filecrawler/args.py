@@ -79,6 +79,7 @@ class Arguments(object):
                            metavar='[index name]',
                            type=str,
                            dest=f'index_name',
+                           default='',
                            help=Color.s('Crawler name'))
 
         flags.add_argument('--path',
@@ -112,6 +113,12 @@ class Arguments(object):
                            metavar='[tasks]',
                            type=int,
                            help=Color.s('number of connects in parallel (per host, default: {G}16{W})'))
+
+        flags.add_argument('--create-config',
+                           action='store_true',
+                           default=False,
+                           dest=f'create_config',
+                           help=Color.s('Create config sample'))
 
         flags.add_argument('--clear-session',
                            action='store_true',

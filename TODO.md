@@ -9,14 +9,15 @@
 * [ ] Containers (docker etc)
 
 ## Extractors:
+* [X] AWS credentials
+* [X] Github and gitlab credentials
 * [ ] Keystore passwords
 * [ ] Certificates and passwords inside of code and binaries
-* [ ] AWS credentials
 * [ ] Database credentials
 * [ ] LDAP credentials
 * [ ] Web System credentials
 * [ ] System/API Tokens
 * [ ] Proxy data (credentials and address)
-* [ ] Cartão de crédito
-* [ ] CPF, CNPJ
+* [ ] Credit card numbers
+* [ ] Brazilian documents (CPF, CNPJ etc)
 

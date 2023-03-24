@@ -114,6 +114,28 @@ class Configuration(object):
 
         Configuration.verbose = args.args.v
 
+        if args.args.config_file is None or args.args.config_file.strip() == '':
+            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
+                args.args.config_file))
+            exit(1)
+
+        if os.path.exists(args.args.config_file) and not os.path.isfile(args.args.config_file):
+            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
+                args.args.config_file))
+            exit(1)
+
+        Configuration.config_file = args.args.config_file
+
+        if args.args.create_config:
+            if os.path.isfile(Configuration.config_file):
+                Logger.pl(
+                    '{!} {R}Error: The configuration already exists.\n'
+                )
+                sys.exit(1)
+
+            Configuration.create_config()
+            sys.exit(0)
+
         try:
             ParserBase.list_parsers(verbose=Configuration.verbose >= 2)
         except Exception as e:
@@ -196,18 +218,6 @@ class Configuration(object):
         if module.check_database:
             Configuration.module.open_db(args=args.args, check=True)
 
-        if args.args.config_file is None or args.args.config_file.strip() == '':
-            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
-                args.args.config_file))
-            exit(1)
-
-        if os.path.exists(args.args.config_file) and not os.path.isfile(args.args.config_file):
-            Logger.pl('{!} {R}error: filename is invalid {O}%s{R} {W}\r\n' % (
-                args.args.config_file))
-            exit(1)
-
-        Configuration.config_file = args.args.config_file
-
         try:
 
             if not os.path.isfile(Configuration.config_file):
@@ -221,40 +231,7 @@ class Configuration(object):
                     exit(0)
                     Logger.pl(' ')
 
-                sample_config = {
-                        'general': {
-                            'indexed_chars': Configuration.indexed_chars,
-                            'excludes': Configuration.excludes,
-                            'json_support': Configuration.json_support,
-                            'filename_as_id': Configuration.filename_as_id,
-                            'jar_support': Configuration.jar_support,
-                            'apk_support': Configuration.apk_support,
-                            'git_support': Configuration.git_support,
-                            'add_filesize': Configuration.add_filesize,
-                            'remove_deleted': Configuration.remove_deleted,
-                            'add_as_inner_object': Configuration.add_as_inner_object,
-                            'store_source': Configuration.store_source,
-                            'index_empty_files': Configuration.index_empty_files,
-                            'attributes_support': Configuration.attributes_support,
-                            'raw_metadata': Configuration.raw_metadata,
-                            'xml_support': Configuration.xml_support,
-                            'lang_detect': Configuration.lang_detect,
-                            'continue_on_error': Configuration.continue_on_error,
-                            'ignore_above': Configuration.ignore_above,
-                            'extract_files': Configuration.extract_files,
-                            'ocr': {
-                                'language': Configuration.ocr_language,
-                                'enabled': Configuration.ocr_enabled,
-                                'pdf_strategy': Configuration.ocr_pdf_strategy,
-                            },
-                            'follow_symlinks': Configuration.follow_symlinks
-                        }
-                    }
-
-                sample_config.update(module.get_config_sample())
-
-                with open(Configuration.config_file, 'w') as f:
-                    yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
+                Configuration.create_config()
 
             with open(Configuration.config_file, 'r') as f:
                 data = dict(yaml.load(f, Loader=yaml.FullLoader))
@@ -378,6 +355,56 @@ class Configuration(object):
                 Logger.pl('     {C}git version:{O} %s{W}' % git_ver)
 
         Logger.pl('  ')
+
+    @staticmethod
+    def create_config():
+        from .crawlerbase import CrawlerBase
+        sample_config = {
+            'general': {
+                'indexed_chars': Configuration.indexed_chars,
+                'excludes': Configuration.excludes,
+                'json_support': Configuration.json_support,
+                'filename_as_id': Configuration.filename_as_id,
+                'jar_support': Configuration.jar_support,
+                'apk_support': Configuration.apk_support,
+                'git_support': Configuration.git_support,
+                'add_filesize': Configuration.add_filesize,
+                'remove_deleted': Configuration.remove_deleted,
+                'add_as_inner_object': Configuration.add_as_inner_object,
+                'store_source': Configuration.store_source,
+                'index_empty_files': Configuration.index_empty_files,
+                'attributes_support': Configuration.attributes_support,
+                'raw_metadata': Configuration.raw_metadata,
+                'xml_support': Configuration.xml_support,
+                'lang_detect': Configuration.lang_detect,
+                'continue_on_error': Configuration.continue_on_error,
+                'ignore_above': Configuration.ignore_above,
+                'extract_files': Configuration.extract_files,
+                'ocr': {
+                    'language': Configuration.ocr_language,
+                    'enabled': Configuration.ocr_enabled,
+                    'pdf_strategy': Configuration.ocr_pdf_strategy,
+                },
+                'follow_symlinks': Configuration.follow_symlinks
+            }
+        }
+
+        # List all modules
+        modules = CrawlerBase.list_modules()
+        for k, m in modules.items():
+            try:
+                s = m.create_instance().get_config_sample()
+                if s is not None:
+                    sample_config.update(s)
+            except Exception as e:
+                if Configuration.verbose >= 1:
+                    Tools.print_error(e)
+
+
+        with open(Configuration.config_file, 'w') as f:
+            yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
+
+        Logger.pl('{+} {W}Config file created at {O}%s{W}\n' % Configuration.config_file)
 
     @staticmethod
     def get_banner():
