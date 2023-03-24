@@ -6,6 +6,7 @@
 * [X] Java packages (Jar and war)
 * [X] Disassembly APK Files with APKTool
 * [X] Compressed files (zip, tar, gzip etc)
+* [X] SQLite3 database
 * [ ] Containers (docker etc)
 
 ## Extractors:

@@ -26,6 +26,7 @@ FileCrawler officially supports Python 3.7+.
 * [X] Java packages (Jar and war)
 * [X] Disassembly APK Files with APKTool
 * [X] Compressed files (zip, tar, gzip etc)
+* [X] SQLite3 database
 
 ### Extractors:
 * [X] AWS credentials
