@@ -28,6 +28,3 @@ class WindowsBinParser(ParserBase):
         # Extensoes conhecidas: .exe, .dll, .pyd, .ocx
 
         return data
-
-    def parse_from_bytes(self, file_data: bytes) -> dict:
-        return dict()

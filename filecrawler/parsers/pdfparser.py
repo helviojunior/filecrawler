@@ -20,6 +20,3 @@ class PDFParser(ParserBase):
         data = self.ocr_file(file)
 
         return data
-
-    def parse_from_bytes(self, file_data: bytes) -> dict:
-        return dict()

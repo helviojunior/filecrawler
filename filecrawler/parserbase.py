@@ -119,7 +119,14 @@ class ParserBase(object):
         raise Exception('Method "parse" is not yet implemented.')
 
     def parse_from_bytes(self, file_data: bytes) -> dict:
-        raise Exception('Method "parse_from_bytes" is not yet implemented.')
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="wb") as tmp_parser:
+            tmp_parser.write(file_data)
+
+            return self.parse(File(
+                base_path=os.path.dirname(tmp_parser.name),
+                file_path=tmp_parser.name
+            ))
 
     @classmethod
     def lookup_credentials(cls, data: [str, bytes]) -> Optional[dict]:
