@@ -1,6 +1,6 @@
 __version__ = '0.1.1'
 __title__ = "FileCrawler"
-__description__ = "File Crawler index files and search credentials."
+__description__ = "File Crawler index files and search hard-coded credentials."
 __url__ = "https://github.com/helviojunior/filecrawler"
 __build__ = 0x63c974a8
 __author__ = "Helvio Junior  (M4v3r1ck)"

@@ -86,6 +86,10 @@ Global Flags:
 Use "filecrawler [module] --help" for more information about a command.
 ```
 
+# How-to install ELK from scratch
+
+[Installing Elasticsearch](https://github.com/helviojunior/filecrawler/blob/main/INSTALL_ELK.md)
+
 # Credits
 
 This project was inspired of:
@@ -97,4 +101,4 @@ This project was inspired of:
 
 # To do
 
-[Check the TODO file](TODO.md)
+[Check the TODO file](https://github.com/helviojunior/filecrawler/blob/main/TODO.md)
