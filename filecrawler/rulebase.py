@@ -47,6 +47,7 @@ class RuleBase(object):
 
     # Overwritten by inherited class
     _regex = None
+    _fp_regex = None
     _keywords = []
     _secret_group = 0
     _tps = []
@@ -281,23 +282,44 @@ class RuleBase(object):
         if self._regex is None and verbose:
             Color.pl('{?} {W}Regex is empty.\n')
 
-        if self._regex is not None:
-            for m in self.regex.finditer(text):
-                if verbose:
-                    Color.pl('{?} {W}Match: {O}%s{W}\n' % m)
-                f = None
-                if self._secret_group == 0 and len(m.groups()) == 0:
-                    f = m[0]
-                elif len(m.groups()) >= self._secret_group:
-                    f = m.group(self._secret_group)
-
-                if f is not None and f not in findings:
-                    ignore = next((True for x in self._exclude_keywords if x.lower() in f.lower()), False)
-                    if not ignore:
-                        findings.append(f)
+        for f in self.run_regex(text, self._regex, verbose):
+            if f is not None and f not in findings:
+                ignore = next((True for x in self._exclude_keywords if x.lower() in f.lower()), False)
+                if not ignore:
+                    findings.append(f)
 
         if len(findings) == 0:
             return None
 
+        # Remove false positives
+        fp = self.run_regex(text, self._fp_regex, verbose)
+        if fp is not None and len(fp) > 0:
+            findings = [
+                f for f in findings
+                if not any(
+                    1 for f1 in fp
+                    if f in f1
+                )
+            ]
+
         return findings
 
+    def run_regex(self, text: str, regex: Pattern, verbose: bool = False) -> list:
+        findings = []
+
+        if regex is None:
+            return findings
+
+        for m in regex.finditer(text):
+            if verbose:
+                Color.pl('{?} {W}Match: {O}%s{W}\n' % m)
+            f = None
+            if self._secret_group == 0 and len(m.groups()) == 0:
+                f = m[0]
+            elif len(m.groups()) >= self._secret_group:
+                f = m.group(self._secret_group)
+
+            if f is not None:
+                findings.append(f)
+
+        return findings
