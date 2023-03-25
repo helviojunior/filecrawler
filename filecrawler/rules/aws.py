@@ -21,5 +21,6 @@ class AWS(RuleBase):
         self._exclude_keywords = [
             "EXAMPLE"  # AKIAIOSFODNN7EXAMPLE
         ]
+        self._fp_regex = re.compile(r"[A-Z0-9]{1,3}(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}[A-Z0-9]{1,3}")
 
         self._tps = [self.generate_sample_secret("AWS", "AKIALALEMEL33243OLIB")]
