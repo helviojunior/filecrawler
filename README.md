@@ -1,4 +1,4 @@
-# Knows More
+# File Crawler
 
 [![Build](https://github.com/helviojunior/filecrawler/actions/workflows/build_and_publish.yml/badge.svg)](https://github.com/helviojunior/filecrawler/actions/workflows/build_and_publish.yml)
 [![Build](https://github.com/helviojunior/filecrawler/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/helviojunior/filecrawler/actions/workflows/build_and_test.yml)
