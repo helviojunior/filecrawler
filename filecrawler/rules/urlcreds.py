@@ -15,3 +15,7 @@ class UrlCreds(RuleBase):
             self.generate_sample_secret("url", "http://user:pass@domain.com.br:8080"),
             self.generate_sample_secret("url", "https://user:pass@domain.com:8080")
         ]
+
+        self._fps = [
+            self.generate_sample_secret("url", "http://domain.com.br:8080/\nteste@123.com")
+        ]
