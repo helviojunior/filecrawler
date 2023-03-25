@@ -71,7 +71,11 @@ Edit the configuration file **config.yml** with your desired parameters
 ### Run
 
 ```bash
-filecrawler --index-name filecrawler --path /mnt/client_files --crawler --elastic -T 30 -v
+# Integrate with ELK
+filecrawler --index-name filecrawler --path /mnt/client_files -T 30 -v --elastic
+
+# Just save leaks locally
+filecrawler --index-name filecrawler --path /mnt/client_files -T 30 -v --local -o /home/out_test
 ```
 
 ## Help
@@ -79,15 +83,16 @@ filecrawler --index-name filecrawler --path /mnt/client_files --crawler --elasti
 ```bash
 $ filecrawler -h
 
-File Crawler v0.1.1 by Helvio Junior
-File Crawler index files and search credentials.
+File Crawler v0.1.3 by Helvio Junior
+File Crawler index files and search hard-coded credentials.
 https://github.com/helviojunior/filecrawler
     
 usage: 
     filecrawler module [flags]
 
-Available Modules:
-  --crawler                  Crawler folder and files
+Available Integration Modules:
+  --elastic                  Integrate to elasticsearch
+  --local                    Save leaks locally
 
 Global Flags:
   --index-name [index name]  Crawler name
@@ -101,6 +106,7 @@ Global Flags:
   -v                         Specify verbosity level (default: 0). Example: -v, -vv, -vvv
 
 Use "filecrawler [module] --help" for more information about a command.
+
 ```
 
 # How-to install ELK from scratch

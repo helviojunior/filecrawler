@@ -203,7 +203,7 @@ class Configuration(object):
                 '{!} {R}error: index name {O}%s{R} is not valid.{W}\r\n' % args.args.index_name)
             exit(1)
 
-        if args.args.path is None or args.args.path.strip() == '' or not os.listdir(args.args.path):
+        if args.args.path is None or args.args.path.strip() == '' or not os.path.isdir(args.args.path):
             Color.pl(
                 '{!} {R}error: path {O}%s{R} is not valid.{W}\r\n' % args.args.path)
             exit(1)
@@ -214,9 +214,6 @@ class Configuration(object):
             Configuration.mandatory()
 
         Configuration.module = module
-
-        if module.check_database:
-            Configuration.module.open_db(args=args.args, check=True)
 
         try:
 

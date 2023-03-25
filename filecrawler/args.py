@@ -54,7 +54,7 @@ class Arguments(object):
 
         mod = self.get_module()
 
-        modules_group = parser.add_argument_group('Available Modules')
+        modules_group = parser.add_argument_group('Available Integration Modules')
         self._add_modules(modules_group, mod)
 
         if mod is not None:

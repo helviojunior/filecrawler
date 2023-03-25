@@ -264,5 +264,5 @@ Edite o arquivo **config.yml** com os parâmetros desejados
 ### Executando
 
 ```bash
-filecrawler --index-name filecrawler --path /mnt/client_files --crawler --elastic -T 30 -v
+filecrawler --index-name filecrawler --path /mnt/client_files --elastic -T 30 -v
 ```
