@@ -245,4 +245,4 @@ class Tools:
             err = err.replace('\n', '\n{W}{!} {W}   ')
             err = err.replace('  File', '{W}{D}File')
             err = err.replace('  Exception: ', '{R}Exception: {O}')
-            Color.pl(err)
+            Color.pl(err + '{W}')
