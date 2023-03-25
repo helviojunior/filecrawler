@@ -300,7 +300,6 @@ class RuleBase(object):
                     if f in fp1
                 )
             ]
-            print(findings)
 
         return findings
 

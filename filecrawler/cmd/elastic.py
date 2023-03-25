@@ -125,7 +125,7 @@ class Elastic(CrawlerBase):
                 #if res.get('result', '') != 'created':
                 #    Logger.pl(res)
 
-        except elastic_transport.ConnectionError as e:
+        except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             raise IntegrationError(e)
 
 
