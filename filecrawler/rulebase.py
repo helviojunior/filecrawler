@@ -67,6 +67,9 @@ class RuleBase(object):
 
         return f'{self._name} <{self._id}>'
 
+    def post_processor(self, original_data: str, found: str):
+        return found
+
     @property
     def id(self) -> str:
         return self._id
@@ -300,6 +303,8 @@ class RuleBase(object):
                     if f in fp1
                 )
             ]
+
+        findings = [f for v in findings if (f := self.post_processor(text, v)) is not None]
 
         return findings
 

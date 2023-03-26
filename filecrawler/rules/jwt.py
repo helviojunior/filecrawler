@@ -1,4 +1,8 @@
+import base64
+import datetime
+import json
 import re
+from typing import Optional
 
 from filecrawler.rulebase import RuleBase
 
@@ -17,3 +21,23 @@ class JWT(RuleBase):
             'JWT = eyJhbGciOieeeiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwic3ViZSI6IjEyMzQ1Njc4OTAiLCJuYW1lZWEiOiJKb2huIERvZSIsInN1ZmV3YWZiIjoiMTIzNDU2Nzg5MCIsIm5hbWVmZWF3ZnciOiJKb2huIERvZSIsIm5hbWVhZmV3ZmEiOiJKb2huIERvZSIsInN1ZndhZndlYWIiOiIxMjM0NTY3ODkwIiwibmFtZWZ3YWYiOiJKb2huIERvZSIsInN1YmZ3YWYiOiIxMjM0NTY3ODkwIiwibmFtZndhZSI6IkpvaG4gRG9lIiwiaWZ3YWZhYXQiOjE1MTYyMzkwMjJ9.a_5icKBDo-8EjUlrfvz2k2k-FYaindQ0DEYNrlsnRG0'
         ]
 
+    def post_processor(self, original_data: str, found: str):
+        try:
+            parts = found.split('.')
+            if len(parts) >= 2:
+                payload = json.loads(base64.b64decode(parts[1] + '=' * (-len(parts[1]) % 4)).decode("utf-8"))
+
+                try:
+                    payload['exp_date'] = datetime.datetime.fromtimestamp(int(payload.get('exp', 0)))
+                except:
+                    pass
+
+                return dict(
+                    jwt=found,
+                    header=json.loads(base64.b64decode(parts[0] + '=' * (-len(parts[0]) % 4)).decode("utf-8")),
+                    payload=payload
+                )
+            else:
+                return found
+        except:
+            return found
