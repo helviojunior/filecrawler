@@ -7,7 +7,7 @@
 * [X] Disassembly APK Files with APKTool
 * [X] Compressed files (zip, tar, gzip etc)
 * [X] SQLite3 database
-* [ ] Containers (docker etc)
+* [X] Containers (docker saved at tar.gz)
 
 ## Extractors:
 * [X] AWS credentials
@@ -23,3 +23,8 @@
 * [ ] Credit card numbers
 * [ ] Brazilian documents (CPF, CNPJ etc)
 
+### Indexers:
+* [x] Elasticsearch
+* [x] Stand-alone local files
+* [ ] Splunk
+* [ ] Other databases and log systems

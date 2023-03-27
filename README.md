@@ -8,7 +8,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/filecrawler.svg)](https://pypi.org/project/filecrawler/)
 [![License: GPL-3.0](https://img.shields.io/pypi/l/filecrawler.svg)](https://github.com/helviojunior/filecrawler/blob/main/LICENSE)
 
-FileCrawler officially supports Python 3.7+.
+FileCrawler officially supports Python 3.8+.
 
 ## Main features
 
@@ -27,6 +27,11 @@ FileCrawler officially supports Python 3.7+.
 * [X] Disassembly APK Files with APKTool
 * [X] Compressed files (zip, tar, gzip etc)
 * [X] SQLite3 database
+* [X] Containers (docker saved at tar.gz)
+
+### Indexers:
+* [x] Elasticsearch
+* [x] Stand-alone local files
 
 ### Extractors:
 * [X] AWS credentials
