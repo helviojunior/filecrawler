@@ -16,7 +16,6 @@ from filecrawler.libs.rule import Rule
 from filecrawler.util.color import Color
 from filecrawler.util.logger import Logger
 
-
 # case insensitive prefix
 from filecrawler.util.tools import Tools
 
@@ -25,7 +24,8 @@ _CASE_INSENSITIVE = r'(?i)'
 # identifier prefix (just an ignore group)
 _IDENTIFIER_PREFIX = r'(?:'
 # )(?:[0-9a-z\-_\t .]{0,20})(?:[\s|']|[\s|"]){0,3}
-_IDENTIFIER_SUFFIX = base64.b64decode("KSg/OlswLTlhLXpcLV9cdCAuXXswLDIwfSkoPzpbXHN8J118W1xzfCJdKXswLDN9").decode("UTF-8")
+_IDENTIFIER_SUFFIX = base64.b64decode("KSg/OlswLTlhLXpcLV9cdCAuXXswLDIwfSkoPzpbXHN8J118W1xzfCJdKXswLDN9").decode(
+    "UTF-8")
 
 # commonly used assignment operators or function call
 _OPERATOR = r'(?:=|>|:=|\|\|:|<=|=>|:)'
@@ -67,8 +67,8 @@ class RuleBase(object):
 
         return f'{self._name} <{self._id}>'
 
-    def post_processor(self, original_data: str, found: str):
-        return found
+    def post_processor(self, original_data: str, found: str) -> dict:
+        return {}
 
     @property
     def id(self) -> str:
@@ -144,11 +144,11 @@ class RuleBase(object):
                           '     True positive..: {G}%s{GR}\n'
                           '     Regexp.........: {G}%s{GR}\n'
                           '%s{W}\n') % (
-                            self, self.id, tp, self.regex.pattern, ''.join([
-                                '     Result.........: {G}%s{GR}\n' % x for x in r])
+                             self, self.id, tp, self.regex.pattern, ''.join([
+                                 '     Result.........: {G}%s{GR}\n' % x for x in r])
                          ))
             if r is None:
-                #Re-execute as verbose
+                # Re-execute as verbose
                 self.run(tp, verbose=True)
 
                 raise Exception((f'Failed to validate. For rule ID [{self.id}], '
@@ -184,18 +184,6 @@ class RuleBase(object):
 
         if len(findings) == 0:
             return None
-
-        '''
-        text = text.replace('\r', '')
-        lines = text.split('\n')
-        filtered = {
-            i: line for i, line in enumerate(lines)
-            if any(
-                1 for k, fl in findings.items() for f in fl
-                if f in line
-            )
-        }
-        '''
 
         return dict(credentials=findings)
 
@@ -304,7 +292,7 @@ class RuleBase(object):
                 )
             ]
 
-        findings = [f for v in findings if (f := self.post_processor(text, v)) is not None]
+        findings = [dict(match=v, **f) for v in findings if (f := self.post_processor(text, v)) is not None]
 
         return findings
 

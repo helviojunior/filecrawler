@@ -93,6 +93,7 @@ class Elastic(CrawlerBase):
                         'path_virtual': {'type': 'text'},
                         'path_real': {'type': 'text'},
                         'content': {'type': 'text'},
+                        'filtered_content': {'type': 'text'},
                         'metadata': {'type': 'text'},
                         'has_credential': {'type': 'boolean'},
                         'parser': {'type': 'keyword'},

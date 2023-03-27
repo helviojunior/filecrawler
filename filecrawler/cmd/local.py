@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import sys
 from argparse import _ArgumentGroup, Namespace
 from pathlib import Path
@@ -48,7 +49,12 @@ class Local(CrawlerBase):
                 '{!} {R}error: path {O}%s{R} is not valid.{W}\r\n' % args.local_out_path)
             exit(1)
 
-        self.out_path = str(Path(args.local_out_path).resolve())
+        Configuration.evidences_path = Path(args.local_out_path).resolve()
+        self.out_path = str(Configuration.evidences_path)
+        if not Configuration.evidences_path.exists():
+            Configuration.evidences_path.mkdir(parents=True)
+
+        Configuration.store_leaks_evidences = True
 
         return True
 
@@ -80,4 +86,3 @@ class Local(CrawlerBase):
         filename = Path(os.path.join(self.out_path, f'{id}.json'))
         with(open(filename, 'w')) as f:
             f.write(json.dumps(data, default=Tools.json_serial, indent=2))
-

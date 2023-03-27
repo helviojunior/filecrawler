@@ -36,6 +36,7 @@ class Configuration(object):
     company = []
     tasks = 5
     tasks_integrator = 2
+    evidences_path = './evidences'
 
     indexed_chars = 1000000
     excludes = [
@@ -53,7 +54,8 @@ class Configuration(object):
     add_filesize = True
     remove_deleted = True
     add_as_inner_object = False
-    store_source = False
+    store_source = True
+    store_leaks_evidences = True
     index_empty_files = False
     attributes_support = False
     raw_metadata = False
@@ -210,6 +212,13 @@ class Configuration(object):
 
         Configuration.path = str(Path(args.args.path).resolve())
 
+        iname = Tools.sanitize_filename(Configuration.index_name)
+        base_path = Path(expanduser(f'~/.filecrawler/{iname}/'))
+
+        Configuration.evidences_path = Path(f'{base_path}/evidences/').resolve()
+        if not Configuration.evidences_path.exists():
+            Configuration.evidences_path.mkdir(parents=True)
+
         if not module.load_from_arguments(args.args):
             Configuration.mandatory()
 
@@ -244,6 +253,7 @@ class Configuration(object):
                     Configuration.remove_deleted = general.get('remove_deleted', Configuration.remove_deleted)
                     Configuration.add_as_inner_object = general.get('add_as_inner_object', Configuration.add_as_inner_object)
                     Configuration.store_source = general.get('store_source', Configuration.store_source)
+                    Configuration.store_leaks_evidences = general.get('store_leaks_evidences', Configuration.store_leaks_evidences)
                     Configuration.attributes_support = general.get('attributes_support', Configuration.attributes_support)
                     Configuration.raw_metadata = general.get('raw_metadata', Configuration.raw_metadata)
                     Configuration.xml_support = general.get('xml_support', Configuration.xml_support)
@@ -314,8 +324,7 @@ class Configuration(object):
                 Color.pl('{!} {R}error: invalid ignore_above size {G}%s{W}\r\n' % Configuration.ignore_above)
                 sys.exit(1)
 
-        iname = Tools.sanitize_filename(Configuration.index_name)
-        db_name = Path(expanduser(f'~/.filecrawler/{iname}/filecrawler.db'))
+        db_name = Path(f'{base_path}/filecrawler.db')
         if args.args.db_file.strip() != '':
             db_name = Path(args.args.db_file.strip())
 
@@ -335,6 +344,8 @@ class Configuration(object):
             exit(1)
         except Exception as e:
             raise e
+
+        Logger.pl('     {C}evidences path:{O} %s{W}' % Configuration.evidences_path)
 
         Logger.pl('     {C}index path:{O} %s{W}' % Configuration.path)
 
@@ -369,6 +380,7 @@ class Configuration(object):
                 'remove_deleted': Configuration.remove_deleted,
                 'add_as_inner_object': Configuration.add_as_inner_object,
                 'store_source': Configuration.store_source,
+                'store_leaks_evidences': Configuration.store_leaks_evidences,
                 'index_empty_files': Configuration.index_empty_files,
                 'attributes_support': Configuration.attributes_support,
                 'raw_metadata': Configuration.raw_metadata,

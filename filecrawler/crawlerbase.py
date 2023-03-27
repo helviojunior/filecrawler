@@ -20,6 +20,7 @@ from filecrawler.gitfinder import GitFinder
 from filecrawler.libs.containerfile import ContainerFile
 from filecrawler.libs.cpath import CPath
 from filecrawler.libs.file import File
+from filecrawler.libs.slice import Slice
 from filecrawler.libs.worker import Worker
 from filecrawler.parserbase import ParserBase
 from filecrawler.util.color import Color
@@ -411,10 +412,19 @@ class CrawlerBase(object):
                         creds = parser.lookup_credentials(f_data.get('content', bytes()))
                         if creds is not None:
                             f_data.update(creds)
+
+                            slice = Slice(f_data['path_virtual'], f_data.get('content', bytes()), creds)
+                            if slice.text != '':
+                                f_data.update(dict(filtered_content=slice.text))
+                                if Configuration.store_leaks_evidences:
+                                    slice.save_evidences(Configuration.evidences_path, f_data['fingerprint'])
+
                             self.save_credential(f_data['path_virtual'], f_data.get('content', bytes()), creds)
 
-                        if f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
-                            f_data['content'] = f_data['content'][:Configuration.indexed_chars]
+                    if not Configuration.store_source:
+                        f_data['content'] = 'Disabled by configuration "store_source"'
+                    elif f_data.get('content', None) is not None and Configuration.indexed_chars > 0:
+                        f_data['content'] = f_data['content'][:Configuration.indexed_chars]
 
                     b64_data = base64.b64encode(json.dumps(f_data, default=Tools.json_serial).encode("utf-8"))
                     if isinstance(b64_data, bytes):
@@ -540,10 +550,19 @@ class CrawlerBase(object):
                     creds = parser.lookup_credentials(data.get('content', ''))
                     if creds is not None:
                         data.update(creds)
+
+                        slice = Slice(data['path_virtual'], data.get('content', ''), creds)
+                        if slice.text != '':
+                            data.update(dict(filtered_content=slice.text))
+                            if Configuration.store_leaks_evidences:
+                                slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
+
                         self.save_credential(file.path_virtual, data.get('content', ''), creds)
 
-                    if data.get('content', None) is not None and Configuration.indexed_chars > 0:
-                        data['content'] = data['content'][:Configuration.indexed_chars]
+                if not Configuration.store_source:
+                    data['content'] = 'Disabled by configuration "store_source"'
+                elif data.get('content', None) is not None and Configuration.indexed_chars > 0:
+                    data['content'] = data['content'][:Configuration.indexed_chars]
 
                 b64_data = base64.b64encode(json.dumps(data, default=Tools.json_serial).encode("utf-8"))
                 if isinstance(b64_data, bytes):
@@ -598,4 +617,4 @@ class CrawlerBase(object):
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}\n%s{W}\n' % (
                 file_path, json.dumps(credentials, default=Tools.json_serial, indent=2)))
         elif Configuration.verbose >= 1:
-            Color.pl('{?} {GR}Credential found at file {O}%s{GR}' % file_path)
+            Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
