@@ -53,9 +53,6 @@ jobs:
         experimental: [false]
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - python-version: "3.7"
-            experimental: false
-            os: ubuntu-20.04
           - python-version: "3.11"
             experimental: true
             os: ubuntu-latest
