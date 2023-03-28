@@ -1,3 +1,4 @@
+import json
 import sys
 from argparse import _ArgumentGroup, Namespace
 
@@ -9,6 +10,8 @@ from filecrawler.libs.crawlerdb import CrawlerDB
 from elasticsearch import Elasticsearch
 import requests
 import elastic_transport
+
+from filecrawler.util.tools import Tools
 
 requests.packages.urllib3.disable_warnings()
 
@@ -108,6 +111,29 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
+        if not es.indices.exists(index=Configuration.index_name + '_credentials'):
+            request_body = {
+                "settings": {
+                    "number_of_replicas": 1
+                },
+
+                'mappings': {
+                    'properties': {
+                        'indexing_date': {'type': 'date'},
+                        'fingerprint': {'type': 'keyword'},
+                        'match': {'type': 'keyword'},
+                        'content': {'type': 'text'},
+                        'filtered_file': {'type': 'text'},
+                        'role': {'type': 'keyword'},
+                    }
+                }
+            }
+
+            es.indices.create(
+                index=Configuration.index_name + '_credentials',
+                body=request_body
+            )
+
     def integrate(self, **data):
         try:
 
@@ -121,10 +147,26 @@ class Elastic(CrawlerBase):
                     if not Configuration.continue_on_error:
                         raise Exception(f'Cannot insert elasticsearch data: {res}')
 
-                return res
-
                 #if res.get('result', '') != 'created':
                 #    Logger.pl(res)
+
+                # Index only credentials
+                findings = {
+                    f['fingerprint']: dict(
+                        match=f['match'],
+                        indexing_date=data['indexing_date'],
+                        role=fl.get('name', ''),
+                        filtered_file=data.get('filtered_content', ''),
+                        content=json.dumps(f, default=Tools.json_serial, indent=2)
+                    )
+                    for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
+                }
+
+                for k, f in findings.items():
+                    res = es.index(index=Configuration.index_name + '_credentials', id=k, document=f)
+                    if res is None or res.get('_shards', {}).get('successful', 0) == 0:
+                        if not Configuration.continue_on_error:
+                            raise Exception(f'Cannot insert elasticsearch data: {res}')
 
         except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             raise IntegrationError(e)

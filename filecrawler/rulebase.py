@@ -1,4 +1,6 @@
 import base64
+import datetime
+import hashlib
 import json
 import os
 import importlib
@@ -292,9 +294,29 @@ class RuleBase(object):
                 )
             ]
 
-        findings = [dict(match=v, **f) for v in findings if (f := self.post_processor(text, v)) is not None]
+        findings = [
+            self._post_processor(text, f) for f in findings
+        ]
 
         return findings
+
+    def _post_processor(self, text: str, match: str) -> dict:
+        data = dict(match=match)
+        mh = match
+        try:
+            data.update(self.post_processor(text, match))
+        except:
+            pass
+
+        try:
+            mh += json.dumps(data, default=Tools.json_serial)
+        except:
+            pass
+
+        sha1sum = hashlib.sha1()
+        sha1sum.update(mh.encode("utf-8"))
+        data.update(dict(fingerprint=sha1sum.hexdigest()))
+        return data
 
     def run_regex(self, text: str, regex: Pattern, verbose: bool = False) -> list:
         findings = []
