@@ -375,9 +375,10 @@ class Configuration(object):
 
     @staticmethod
     def print_config():
-        sample_config = Configuration.get_config_sample()
-        Logger.pl('\n{+} {W}Running config: {W}')
-        Logger.pl('{GR}%s{W}' % yaml.dump(sample_config, sort_keys=False, default_flow_style=False))
+        with open(Configuration.config_file, 'r') as f:
+            data = dict(yaml.load(f, Loader=yaml.FullLoader))
+            Logger.pl('\n{+} {W}Running config: {W}')
+            Logger.pl('{GR}%s{W}' % yaml.dump(data, sort_keys=False, default_flow_style=False))
 
     @staticmethod
     def create_config():

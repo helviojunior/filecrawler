@@ -624,20 +624,21 @@ class CrawlerBase(object):
         elif Configuration.verbose >= 1:
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
 
-            #insert_or_get_alert
-            for k, c in credentials.items():
-                b64_data = base64.b64encode(json.dumps(c, default=Tools.json_serial).encode("utf-8"))
-                if isinstance(b64_data, bytes):
-                    b64_data = b64_data.decode("utf-8")
-                ctrl = db.insert_or_get_alert(**dict(
-                    index_id=self.index_id,
-                    file_fingerprint=data['fingerprint'],
-                    sent=1,
-                    data=b64_data,
-                    **data
-                ))
-                if ctrl is None or ctrl['inserted']:
-                    AlertBase.alert(Configuration.evidences_path, data['fingerprint'], k, c)
+        #insert_or_get_alert
+        for k, c in credentials.items():
+            b64_data = base64.b64encode(json.dumps(c, default=Tools.json_serial).encode("utf-8"))
+            if isinstance(b64_data, bytes):
+                b64_data = b64_data.decode("utf-8")
+            ctrl = db.insert_or_get_alert(**dict(
+                index_id=self.index_id,
+                fingerprint=k,
+                file_fingerprint=data['fingerprint'],
+                sent=1,
+                data=b64_data,
+                **c
+            ))
+            if ctrl is None or ctrl['inserted']:
+                AlertBase.alert(Configuration.evidences_path, data['fingerprint'], k, c)
 
     @classmethod
     def get_credentials_data(cls, data: dict) -> dict:
