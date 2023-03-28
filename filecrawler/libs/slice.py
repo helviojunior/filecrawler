@@ -135,15 +135,30 @@ class Slice(object):
             if start > 0:
                 parts.append(text[0:start])
 
+            pattern = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
+            ansi_codes = [
+                (m.start(), m.end())
+                for m in pattern.finditer(text)
+            ]
+
             c = max_cols
             o = start
             size = max_cols
             first_line = True
             while c <= len(text):
                 p = text[o:c]
-                while len(p) != len(Slice.escape_ansi(p)) and len(Slice.escape_ansi(p)) < size:
+                while len(Slice.escape_ansi(p)) < size:
                     c += 1
                     p = text[o:c]
+                    if o + c >= len(text):
+                        break
+                (idxs, idxe) = next((
+                    a for a in ansi_codes
+                    if a[0] <= c <= a[1]
+                ), (None, None))
+                if idxs is not None:
+                    c = idxe
+                p = text[o:c]
                 if first_line:
                     size = max_cols - diff - tab
                     first_line = False
