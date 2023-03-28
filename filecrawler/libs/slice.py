@@ -19,10 +19,7 @@ class Slice(object):
         if credentials is None or len(credentials) == 0:
             return
 
-        findings = [
-            f.get('match', '') if isinstance(f, dict) and f.get('match', None) is not None else f
-            for k, fl in credentials.get('credentials', {}).items() for f in fl.get('findings', [])
-        ]
+        findings = self._get_findings(credentials.get('credentials', {}))
 
         content = content.replace('\r', '')
         for f in findings:
@@ -76,11 +73,39 @@ class Slice(object):
         self._table += Color.s('%s%s\n' % (p1, p2))
 
         self._table += ''.join([
-            '%s-' % c for k, c in sorted(Color.gray_scale.items(), key=lambda x:x[0], reverse=True)
+            '%s--' % c for k, c in sorted(Color.gray_scale.items(), key=lambda x:x[0], reverse=True)
         ]) + Color.s('{W}\n')
 
         self._table += '\n'.join(data)
         self._table += Color.s('\n{W}')
+
+    @classmethod
+    def _get_findings(cls, credentials) -> list:
+        lst = []
+        if isinstance(credentials, list):
+            lst += [
+                l0
+                for l0 in credentials
+                for _, d0 in l0.items()
+                for l0 in d0.get('findings', [])
+                if isinstance(d0, dict) and d0.get('findings', None) is not None \
+                   and isinstance(d0['findings'], list)
+            ]
+        elif isinstance(credentials, dict):
+            lst += [
+                l0
+                for _, d0 in credentials.items()
+                for l0 in d0.get('findings', [])
+                if isinstance(d0, dict) and d0.get('findings', None) is not None \
+                   and isinstance(d0['findings'], list)
+            ]
+
+        return [
+            v
+            for l0 in lst
+            for k, v in l0.items()
+            if isinstance(l0, dict) and k != 'fingerprint' and isinstance(v, str)
+        ]
 
     @property
     def text(self):
