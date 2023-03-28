@@ -1,6 +1,4 @@
-import sys
-
-from filecrawler.util.color import Color
+from filecrawler.libs.color import Color
 
 DEFAULT = 0
 INFO = 1

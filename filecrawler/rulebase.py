@@ -1,22 +1,17 @@
 import base64
-import datetime
 import hashlib
 import json
 import os
 import importlib
 import pkgutil
-import random
 import re
-import sqlite3
-import string
 from pathlib import Path
 from re import Pattern
 from typing import Iterator, Optional, TypeVar
 
-from filecrawler.libs.parser import Parser
 from filecrawler.libs.rule import Rule
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
+from filecrawler.libs.color import Color
+from filecrawler.libs.logger import Logger
 
 # case insensitive prefix
 from filecrawler.util.tools import Tools

@@ -23,9 +23,9 @@ from filecrawler.libs.file import File
 from filecrawler.libs.slice import Slice
 from filecrawler.libs.worker import Worker
 from filecrawler.parserbase import ParserBase
-from filecrawler.util.color import Color
+from filecrawler.libs.color import Color
 from filecrawler.libs.crawlerdb import CrawlerDB
-from filecrawler.util.logger import Logger
+from filecrawler.libs.logger import Logger
 from filecrawler.util.tools import Tools
 
 

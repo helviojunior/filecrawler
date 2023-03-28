@@ -11,11 +11,10 @@ import re
 from .libs.crawlerdb import CrawlerDB
 from .parserbase import ParserBase
 from .rulebase import RuleBase
-from .util.color import Color
-from .util.logger import Logger
+from filecrawler.libs.color import Color
+from filecrawler.libs.logger import Logger
 from .__meta__ import __version__, __description__
 from .util.tools import Tools
-from yaml.loader import SafeLoader, FullLoader
 
 
 class Configuration(object):
@@ -444,7 +443,7 @@ class Configuration(object):
     @staticmethod
     def dump():
         ''' (Colorful) string representation of the configuration '''
-        from .util.color import Color
+        from filecrawler.libs.color import Color
 
         max_len = 20
         for key in Configuration.__dict__.keys():

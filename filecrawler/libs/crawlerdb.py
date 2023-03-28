@@ -1,17 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
-import datetime
-import sys, os.path
-import sqlite3
-import string, base64
-import json
-import hashlib
-from sqlite3 import Connection, OperationalError, IntegrityError, ProgrammingError
 from typing import Optional
 
-from filecrawler.util.color import Color
 from .database import Database
-from filecrawler.password import Password
 
 
 class CrawlerDB(Database):

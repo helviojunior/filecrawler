@@ -2,8 +2,7 @@ import hashlib
 import codecs
 import unicodedata
 
-from filecrawler.util.color import Color
-from filecrawler.util.tools import Tools
+from filecrawler.libs.color import Color
 from math import log
 from Levenshtein import ratio
 

@@ -1,15 +1,8 @@
 import json
-import os
-import sys
-from pathlib import Path
 
 import yaml
 
 from filecrawler.libs.file import File
-from filecrawler.libs.parser import Parser
-from filecrawler.libs.process import Process
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
 from filecrawler.parserbase import ParserBase
 
 
@@ -21,7 +14,6 @@ class YamlParser(ParserBase):
         super().__init__('YAML Parser', 'Parser for YAML files')
 
     def parse(self, file: File) -> dict:
-        from filecrawler.config import Configuration
         data = {'content': self.get_readable_data(file)}
 
         try:
@@ -34,7 +26,6 @@ class YamlParser(ParserBase):
         return data
 
     def parse_from_bytes(self, file_data: bytes) -> dict:
-        from filecrawler.config import Configuration
         data = {'content': self.get_readable_data(file_data)}
 
         try:

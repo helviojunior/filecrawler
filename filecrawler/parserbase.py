@@ -2,17 +2,14 @@ import json
 import os
 import importlib
 import pkgutil
-import random
-import sqlite3
-import string
 from pathlib import Path
 from typing import Optional
 
 from filecrawler.libs.file import File
 from filecrawler.libs.parser import Parser
 from filecrawler.rulebase import RuleBase
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
+from filecrawler.libs.color import Color
+from filecrawler.libs.logger import Logger
 
 
 class ParserBase(object):

@@ -1,10 +1,10 @@
 #reference: https://medium.com/assertqualityassurance/tutorial-de-pytest-para-iniciantes-cbdd81c6d761
 import codecs
 
-import pytest, sys
+import sys
 
 from filecrawler.filecrawler import FileCrawler, Configuration
-from filecrawler.util.color import Color
+from filecrawler.libs.color import Color
 
 
 def test_create_config():

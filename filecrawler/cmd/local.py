@@ -1,18 +1,12 @@
 import json
 import os
-import shutil
-import sys
 from argparse import _ArgumentGroup, Namespace
 from pathlib import Path
 
-from filecrawler._exceptions import IntegrationError
 from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
-from filecrawler.util.color import Color
-from filecrawler.libs.crawlerdb import CrawlerDB
-from elasticsearch import Elasticsearch
+from filecrawler.libs.color import Color
 import requests
-import elastic_transport
 
 from filecrawler.util.tools import Tools
 

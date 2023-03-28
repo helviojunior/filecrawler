@@ -2,14 +2,13 @@
 # -*- coding: UTF-8 -*-
 import base64
 import datetime
-import io
 import os
 import platform
 import string, random, sys, re
 import subprocess
 import unicodedata
-from tabulate import _table_formats, tabulate
-from filecrawler.util.color import Color
+from tabulate import tabulate
+from filecrawler.libs.color import Color
 
 
 class Tools:

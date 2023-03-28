@@ -12,9 +12,9 @@ except (ValueError, ImportError) as e:
     raise Exception('You may need to run filecrawler from the root directory (which includes README.md)', e)
 
 
-import sys, datetime, time, os, requests, socket
-from .util.color import Color
-from .util.logger import Logger
+import sys, datetime, os
+from filecrawler.libs.color import Color
+from filecrawler.libs.logger import Logger
 from .util.tools import Tools
 
 

@@ -5,8 +5,7 @@ from argparse import _ArgumentGroup, Namespace
 from filecrawler._exceptions import IntegrationError
 from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
-from filecrawler.util.color import Color
-from filecrawler.libs.crawlerdb import CrawlerDB
+from filecrawler.libs.color import Color
 from elasticsearch import Elasticsearch
 import requests
 import elastic_transport

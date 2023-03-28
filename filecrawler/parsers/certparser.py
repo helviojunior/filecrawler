@@ -1,11 +1,4 @@
-import json
-import sys
-from pathlib import Path
-
 from filecrawler.libs.file import File
-from filecrawler.libs.parser import Parser
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
 from filecrawler.parserbase import ParserBase
 
 
@@ -25,7 +18,6 @@ class CertificateParser(ParserBase):
         return self._parse(data, file_data)
 
     def _parse(self, data: dict, content: bytes) -> dict:
-        from filecrawler.config import Configuration
         from OpenSSL import crypto
 
         '''        

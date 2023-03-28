@@ -3,7 +3,7 @@ from pathlib import Path
 from ansi2image.ansi2image import Ansi2Image
 
 from filecrawler.config import Configuration
-from filecrawler.util.color import Color
+from filecrawler.libs.color import Color
 from filecrawler.util.tools import Tools
 
 

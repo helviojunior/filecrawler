@@ -1,15 +1,8 @@
 import json
-import os
-import sys
-from pathlib import Path
 
 import xmltodict
 
 from filecrawler.libs.file import File
-from filecrawler.libs.parser import Parser
-from filecrawler.libs.process import Process
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
 from filecrawler.parserbase import ParserBase
 
 

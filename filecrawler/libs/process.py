@@ -9,8 +9,8 @@ from pathlib import Path
 from subprocess import Popen, PIPE
 
 from filecrawler.config import Configuration
-from filecrawler.util.color import Color
-from filecrawler.util.logger import Logger
+from filecrawler.libs.color import Color
+from filecrawler.libs.logger import Logger
 
 
 class Process(object):

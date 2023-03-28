@@ -3,7 +3,7 @@
 from argparse import _ArgumentGroup, Namespace
 
 from .crawlerbase import CrawlerBase
-from .util.color import Color
+from filecrawler.libs.color import Color
 
 import argparse, sys
 
