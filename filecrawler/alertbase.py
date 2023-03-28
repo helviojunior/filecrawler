@@ -40,10 +40,10 @@ class AlertBase(object):
 
         return f'{self._name} <{self._id}>'
 
-    def send_alert(self, match: str, indexing_date: datetime.datetime, role: str, filtered_file: str, content: str, image_file: Path):
+    def send_alert(self, match: str, indexing_date: datetime.datetime, rule: str, filtered_file: str, content: str, image_file: Path):
         pass
 
-    def is_enabled(self, config: dict) -> bool:
+    def is_enabled(self) -> bool:
         return False
 
     @staticmethod
@@ -86,10 +86,13 @@ class AlertBase(object):
         return '.'.join((parent_module, 'alerts'))
 
     @classmethod
-    def load_alerters(cls, config: dict, verbose: int = 0) -> dict:
+    def load_alerters(cls, config: Optional[dict] = None, verbose: int = 0) -> dict:
 
         if AlertBase._alerters is not None and len(AlertBase._alerters) > 0:
             return AlertBase._alerters
+
+        if config is None:
+            return {}
 
         base_alerters = AlertBase.get_base_alert()
 
@@ -109,11 +112,11 @@ class AlertBase(object):
             Logger.pl('')
 
         for iclass in AlertBase.__subclasses__():
-            t = iclass()
+            t = iclass(config)
             if t.id in alerters:
                 raise Exception(f'Duplicated rule id [{t.id}]: {iclass.__module__}.{iclass.__qualname__}')
 
-            if t.is_enabled(config):
+            if t.is_enabled():
                 alerters[t.id] = Alert(
                     id=t.id,
                     name=t.name,
@@ -137,7 +140,7 @@ class AlertBase(object):
 
         match = alert.get('match', None)
         indexing_date = alert.get('indexing_date', None)
-        role = alert.get('role', None)
+        rule = alert.get('rule', None)
         filtered_file = alert.get('filtered_file', None)
         content = alert.get('content', None)
 
@@ -146,12 +149,12 @@ class AlertBase(object):
 
         image_name = Path(f'{base_path}/{fingerprint}.png').resolve()
 
-        for a in AlertBase._alerters:
+        for _, a in AlertBase._alerters.items():
             inst = a.create_instance()
             inst.send_alert(
                 match=match,
                 indexing_date=indexing_date,
-                role=role,
+                rule=rule,
                 filtered_file=filtered_file,
                 content=content,
                 image_file=image_name

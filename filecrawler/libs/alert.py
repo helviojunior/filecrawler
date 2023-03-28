@@ -30,4 +30,4 @@ class Alert(object):
         return f'<{self._name} id {self._id}>'
 
     def create_instance(self):
-        return self._class()
+        return self._class(self._config)

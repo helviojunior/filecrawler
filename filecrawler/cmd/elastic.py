@@ -121,7 +121,7 @@ class Elastic(CrawlerBase):
                         'match': {'type': 'keyword'},
                         'content': {'type': 'text'},
                         'filtered_file': {'type': 'text'},
-                        'role': {'type': 'keyword'},
+                        'rule': {'type': 'keyword'},
                     }
                 }
             }

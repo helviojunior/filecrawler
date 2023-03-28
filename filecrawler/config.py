@@ -287,7 +287,10 @@ class Configuration(object):
                 if not module.load_config(data):
                     Configuration.mandatory()
 
-                AlertBase.load_alerters(general.get('alerts', {}))
+                alerts = AlertBase.load_alerters(data.get('alerts', {}))
+                if alerts is not None and len(alerts) > 0:
+                    #Need this to store and send image alerts
+                    Configuration.store_leaks_evidences = True
 
         except IOError as x:
             if x.errno == errno.EACCES:

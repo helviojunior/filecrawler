@@ -13,6 +13,7 @@ import string
 from argparse import _ArgumentGroup, ArgumentParser, Namespace
 
 from filecrawler._exceptions import IntegrationError
+from filecrawler.alertbase import AlertBase
 from filecrawler.libs.module import Module
 
 from filecrawler.config import Configuration
@@ -623,7 +624,8 @@ class CrawlerBase(object):
         elif Configuration.verbose >= 1:
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
 
-        #TODO: Regras de alertas
+        for k, c in credentials.items():
+            AlertBase.alert(Configuration.evidences_path, data['fingerprint'], c)
 
     @classmethod
     def get_credentials_data(cls, data: dict) -> dict:
@@ -631,7 +633,7 @@ class CrawlerBase(object):
                     f['fingerprint']: dict(
                         match=f['match'],
                         indexing_date=data['indexing_date'],
-                        role=fl.get('name', ''),
+                        rule=fl.get('name', ''),
                         filtered_file=data.get('filtered_content', ''),
                         content=json.dumps(f, default=Tools.json_serial, indent=2)
                     )
