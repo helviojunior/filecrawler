@@ -8,6 +8,7 @@ from pathlib import Path
 import yaml
 import re
 
+from .alertbase import AlertBase
 from .libs.crawlerdb import CrawlerDB
 from .parserbase import ParserBase
 from .rulebase import RuleBase
@@ -286,6 +287,8 @@ class Configuration(object):
                 if not module.load_config(data):
                     Configuration.mandatory()
 
+                AlertBase.load_alerters(general.get('alerts', {}))
+
         except IOError as x:
             if x.errno == errno.EACCES:
                 Color.pl('{!} {R}error: could not open {G}%s {O}permission denied{R}{W}\r\n' % Configuration.config_file)
@@ -425,6 +428,10 @@ class Configuration(object):
             except Exception as e:
                 if Configuration.verbose >= 1:
                     Tools.print_error(e)
+
+        alerts = AlertBase.get_config_sample()
+        if alerts is not None and len(alerts) > 0:
+            sample_config.update(dict(alerts=alerts))
 
         return sample_config
 
