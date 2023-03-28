@@ -413,7 +413,7 @@ class CrawlerBase(object):
                         if creds is not None:
                             f_data.update(creds)
 
-                            slice = Slice(f_data['path_virtual'], f_data.get('content', bytes()), creds)
+                            slice = Slice(f_data['path_virtual'], f_data['fingerprint'], f_data.get('content', bytes()), creds)
                             if slice.text != '':
                                 f_data.update(dict(filtered_content=slice.text))
                                 if Configuration.store_leaks_evidences:
@@ -551,7 +551,7 @@ class CrawlerBase(object):
                     if creds is not None:
                         data.update(creds)
 
-                        slice = Slice(data['path_virtual'], data.get('content', ''), creds)
+                        slice = Slice(data['path_virtual'], data['fingerprint'], data.get('content', ''), creds)
                         if slice.text != '':
                             data.update(dict(filtered_content=slice.text))
                             if Configuration.store_leaks_evidences:

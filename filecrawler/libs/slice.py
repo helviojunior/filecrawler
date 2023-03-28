@@ -12,7 +12,7 @@ class Slice(object):
     _line_filter = []
     _table = ''
 
-    def __init__(self, file_path: str, content: str, credentials: dict):
+    def __init__(self, file_path: str, fingerprint: str, content: str, credentials: dict):
 
         self._filename = Path(file_path)
 
@@ -68,9 +68,12 @@ class Slice(object):
         if not self.is_valid(len(lines)):
             data += [dot_line]
 
-        p1 = ' \033[38;5;52m=\033[38;5;88m=\033[38;5;124m=\033[38;5;160m=\033[38;5;196m> ' + Color.s('{W}{O}File: ')
+        self._table = ' \033[38;5;52m=\033[38;5;88m=\033[38;5;124m=\033[38;5;160m=\033[38;5;196m> ' + Color.s(
+            '{W}{O}Id   {G}%s{W}\n' % fingerprint)
+        p1 = ' \033[38;5;52m=\033[38;5;88m=\033[38;5;124m=\033[38;5;160m=\033[38;5;196m> ' + Color.s(
+            '{W}{O}File ')
         p2 = Slice.format_line('{G}%s{W}' % file_path, len(Slice.escape_ansi(p1)))
-        self._table = Color.s('%s%s\n' % (p1, p2))
+        self._table += Color.s('%s%s\n' % (p1, p2))
 
         self._table += ''.join([
             '%s-' % c for k, c in sorted(Color.gray_scale.items(), key=lambda x:x[0], reverse=True)
