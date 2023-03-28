@@ -419,7 +419,7 @@ class CrawlerBase(object):
                                 if Configuration.store_leaks_evidences:
                                     slice.save_evidences(Configuration.evidences_path, f_data['fingerprint'])
 
-                            self.save_credential(f_data['path_virtual'], f_data.get('content', bytes()), creds)
+                            self.save_credential(f_data['path_virtual'], f_data)
 
                     if not Configuration.store_source:
                         f_data['content'] = 'Disabled by configuration "store_source"'
@@ -557,7 +557,7 @@ class CrawlerBase(object):
                             if Configuration.store_leaks_evidences:
                                 slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
 
-                        self.save_credential(file.path_virtual, data.get('content', ''), creds)
+                        self.save_credential(file.path_virtual, data)
 
                 if not Configuration.store_source:
                     data['content'] = 'Disabled by configuration "store_source"'
@@ -609,8 +609,12 @@ class CrawlerBase(object):
         if Configuration.verbose >= 3:
             Color.pl('{*} {GR}finishing processor for %s{W}' % file.path_virtual)
 
-    def save_credential(self, file_path: str, content: str, credentials: dict):
-        if credentials is None:
+    def save_credential(self, file_path: str, data: dict):
+        if data is None or len(data) == 0:
+            return
+
+        credentials = self.get_credentials_data(data)
+        if credentials is None or len(credentials) == 0:
             return
 
         if Configuration.verbose >= 2:
@@ -618,3 +622,18 @@ class CrawlerBase(object):
                 file_path, json.dumps(credentials, default=Tools.json_serial, indent=2)))
         elif Configuration.verbose >= 1:
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
+
+        #TODO: Regras de alertas
+
+    @classmethod
+    def get_credentials_data(cls, data: dict) -> dict:
+        return {
+                    f['fingerprint']: dict(
+                        match=f['match'],
+                        indexing_date=data['indexing_date'],
+                        role=fl.get('name', ''),
+                        filtered_file=data.get('filtered_content', ''),
+                        content=json.dumps(f, default=Tools.json_serial, indent=2)
+                    )
+                    for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
+                }

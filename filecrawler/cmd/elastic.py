@@ -10,8 +10,6 @@ from elasticsearch import Elasticsearch
 import requests
 import elastic_transport
 
-from filecrawler.util.tools import Tools
-
 requests.packages.urllib3.disable_warnings()
 
 
@@ -150,16 +148,7 @@ class Elastic(CrawlerBase):
                 #    Logger.pl(res)
 
                 # Index only credentials
-                findings = {
-                    f['fingerprint']: dict(
-                        match=f['match'],
-                        indexing_date=data['indexing_date'],
-                        role=fl.get('name', ''),
-                        filtered_file=data.get('filtered_content', ''),
-                        content=json.dumps(f, default=Tools.json_serial, indent=2)
-                    )
-                    for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
-                }
+                findings = CrawlerBase.get_credentials_data(data)
 
                 for k, f in findings.items():
                     res = es.index(index=Configuration.index_name + '_credentials', id=k, document=f)
