@@ -21,9 +21,11 @@ class Slice(object):
 
         findings = self._get_findings(credentials.get('credentials', {}))
 
-        content = content.replace('\r', '')
+        content = Slice.escape_ansi(content.replace('\r', ''))
         for f in findings:
-            content = content.replace(f, Color.s('{R}%s{GR}' % f))
+            content = content.replace(f, '{R}%s{GR}' % f)
+
+        content = Color.s(content)
 
         lines = content.split('\n')
         highlight_filter = [
@@ -108,6 +110,7 @@ class Slice(object):
                 for k, v in l0.items()
                 if isinstance(l0, dict) and k != 'fingerprint' and isinstance(v, str)
             }.items(), key=lambda x:x[0], reverse=False)
+            if s.strip() != ''
         ]
 
     @property
@@ -121,9 +124,10 @@ class Slice(object):
     @staticmethod
     def format_line(text: str, number_line: int) -> str:
         tab = 2
-        text = text.replace('\t', ' ' * tab)
+        text = text.replace('\t', ' ' * tab).rstrip() + ' '
         max_cols = 200
         if len(text) < max_cols:
+            #print(text)
             return Color.s('{GR}%s{W}' % text)
 
         try:

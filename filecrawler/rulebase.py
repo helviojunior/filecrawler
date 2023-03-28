@@ -290,6 +290,14 @@ class RuleBase(object):
             ]
 
         findings = [
+            f for f in findings
+            if len(self.run_regex(f, self._fp_regex, verbose)) == 0
+        ]
+
+        if len(findings) == 0:
+            return None
+
+        findings = [
             self._post_processor(text, f) for f in findings
         ]
 

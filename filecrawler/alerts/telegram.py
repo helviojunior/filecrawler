@@ -52,6 +52,11 @@ class Telegram(AlertBase):
                         data = r1.json()
                         if data is not None:
                             image_id = data.get('result', {}).get('message_id', -1)
+                    else:
+                        print(' ')
+                        print(image_file)
+                        print(match)
+                        print(r1.text)
         except Exception as e:
             print(e)
             pass

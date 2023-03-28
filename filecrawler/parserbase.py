@@ -2,6 +2,7 @@ import json
 import os
 import importlib
 import pkgutil
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -10,7 +11,6 @@ from filecrawler.libs.parser import Parser
 from filecrawler.rulebase import RuleBase
 from filecrawler.libs.color import Color
 from filecrawler.libs.logger import Logger
-from filecrawler.util.tools import Tools
 
 
 class ParserBase(object):
