@@ -33,17 +33,42 @@ class Telegram(AlertBase):
 
     def send_alert(self, match: str, indexing_date: datetime.datetime, rule: str, filtered_file: str, content: str, image_file: Path):
 
+        # https://apps.timwhitlock.info/emoji/tables/unicode
         requests.packages.urllib3.disable_warnings()
 
-        text = f'New credential found by rule {rule}\n'
-        text += f'Math: {match}\n\n'
+        image_id = -1
+        try:
+            if image_file.exists():
+                with(open(image_file, 'rb')) as f:
+                    files = {'photo': f}
+
+                    r1 = requests.post(
+                        f"https://api.telegram.org/{self._bot_id}/sendPhoto?chat_id={self._chat_id}",
+                        verify=False,
+                        timeout=30,
+                        files=files
+                    )
+                    if r1.status_code == 200:
+                        data = r1.json()
+                        if data is not None:
+                            image_id = data.get('result', {}).get('message_id', -1)
+        except Exception as e:
+            print(e)
+            pass
+
+        text = f'\U0001F6A8 ALERT \U0001F6A8 \n'
+        text += f'New credential found by rule {rule}\n\n'
         text += content
+        text += '\n'
 
         header = {'content-type': 'application/json'}
         data = {
             'chat_id': self._chat_id,
             'text': text
         }
+
+        if image_id != -1:
+            data.update(dict(reply_to_message_id=image_id))
 
         try:
             requests.post(
@@ -54,21 +79,6 @@ class Telegram(AlertBase):
                 data=json.dumps(data)
             )
         except:
-            pass
-
-        try:
-            if image_file.exists():
-                with(open(image_file, 'rb')) as f:
-                    files = {'photo': f}
-
-                    requests.post(
-                        f"https://api.telegram.org/{self._bot_id}/sendPhoto?chat_id={self._chat_id}",
-                        verify=False,
-                        timeout=30,
-                        files=files
-                    )
-        except Exception as e:
-            print(e)
             pass
 
     def is_enabled(self) -> bool:

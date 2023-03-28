@@ -417,6 +417,20 @@ class Database(object):
         conn.commit()
 
         cursor.execute("""
+            CREATE TABLE IF NOT EXISTS [alert] (
+                alert_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                index_id INTEGER NOT NULL,
+                file_fingerprint TEXT NOT NULL,
+                fingerprint TEXT NOT NULL,
+                data TEXT NULL,
+                sent INTEGER NOT NULL DEFAULT (0),
+                FOREIGN KEY(index_id) REFERENCES [index](index_id),
+                UNIQUE(index_id, fingerprint)
+            );
+        """)
+        conn.commit()
+
+        cursor.execute("""
                     CREATE INDEX idx_file_index_fingerprint
                     ON [file_index] (fingerprint);
                 """)

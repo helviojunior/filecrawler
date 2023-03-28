@@ -130,9 +130,9 @@ class AlertBase(object):
         return AlertBase._alerters
 
     @staticmethod
-    def alert(base_path: [str, Path], fingerprint: str, alert: dict):
+    def alert(base_path: [str, Path], file_fingerprint: str, fingerprint: str, alert: dict):
 
-        if base_path is None or fingerprint is None:
+        if base_path is None or file_fingerprint is None:
             return
 
         if AlertBase._alerters is None or len(AlertBase._alerters) == 0:
@@ -147,7 +147,7 @@ class AlertBase(object):
         if match is None:
             return
 
-        image_name = Path(f'{base_path}/{fingerprint}.png').resolve()
+        image_name = Path(f'{base_path}/{file_fingerprint}.png').resolve()
 
         for _, a in AlertBase._alerters.items():
             inst = a.create_instance()

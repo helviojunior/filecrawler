@@ -135,6 +135,7 @@ class Configuration(object):
                 )
                 sys.exit(1)
 
+            Configuration.initialized = False
             Configuration.create_config()
             return
 

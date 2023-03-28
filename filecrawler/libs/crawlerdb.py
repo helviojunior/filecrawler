@@ -12,6 +12,8 @@ class CrawlerDB(Database):
                            'created', 'last_accessed', 'last_modified', 'indexing_date', 'path_real', 'path_virtual',
                            'data', 'integrated']
 
+    _ALERT_COLUMNS = ['alert_id', 'index_id', 'file_fingerprint', 'fingerprint', 'data', 'sent']
+
     def __init__(self, auto_create=True, db_name=None):
 
         if db_name is None:
@@ -69,5 +71,27 @@ class CrawlerDB(Database):
 
         return dt
 
+    def insert_or_get_alert(self, **data) -> Optional[dict]:
+
+        for k in [k1 for k1 in data.keys()]:
+            if k not in self._ALERT_COLUMNS:
+                data.pop(k)
+
+        (inserted, updated) = self.insert_update_one_exclude('alert',
+                                                             exclude_on_update=[
+                                                                 'file_fingerprint',
+                                                                 'data',
+                                                                 'sent',
+                                                                 'index_id'
+                                                             ],
+                                                             **data)
+
+        dt = self.select_first('alert', fingerprint=data['fingerprint'])
+        if dt is None:
+            return None
+
+        dt.update(dict(inserted=inserted, updated=updated))
+
+        return dt
 
 

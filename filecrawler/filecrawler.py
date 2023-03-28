@@ -27,7 +27,7 @@ class FileCrawler(object):
 
         Configuration.initialize()
 
-        if Configuration.config_file:
+        if not Configuration.initialized:
             return
 
         self.run()

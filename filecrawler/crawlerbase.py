@@ -420,7 +420,7 @@ class CrawlerBase(object):
                                 if Configuration.store_leaks_evidences:
                                     slice.save_evidences(Configuration.evidences_path, f_data['fingerprint'])
 
-                            self.save_credential(f_data['path_virtual'], f_data)
+                            self.save_credential(db, f_data['path_virtual'], f_data)
 
                     if not Configuration.store_source:
                         f_data['content'] = 'Disabled by configuration "store_source"'
@@ -558,7 +558,7 @@ class CrawlerBase(object):
                             if Configuration.store_leaks_evidences:
                                 slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
 
-                        self.save_credential(file.path_virtual, data)
+                        self.save_credential(db, file.path_virtual, data)
 
                 if not Configuration.store_source:
                     data['content'] = 'Disabled by configuration "store_source"'
@@ -610,7 +610,7 @@ class CrawlerBase(object):
         if Configuration.verbose >= 3:
             Color.pl('{*} {GR}finishing processor for %s{W}' % file.path_virtual)
 
-    def save_credential(self, file_path: str, data: dict):
+    def save_credential(self, db: CrawlerDB, file_path: str, data: dict):
         if data is None or len(data) == 0:
             return
 
@@ -624,8 +624,20 @@ class CrawlerBase(object):
         elif Configuration.verbose >= 1:
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
 
-        for k, c in credentials.items():
-            AlertBase.alert(Configuration.evidences_path, data['fingerprint'], c)
+            #insert_or_get_alert
+            for k, c in credentials.items():
+                b64_data = base64.b64encode(json.dumps(c, default=Tools.json_serial).encode("utf-8"))
+                if isinstance(b64_data, bytes):
+                    b64_data = b64_data.decode("utf-8")
+                ctrl = db.insert_or_get_alert(**dict(
+                    index_id=self.index_id,
+                    file_fingerprint=data['fingerprint'],
+                    sent=1,
+                    data=b64_data,
+                    **data
+                ))
+                if ctrl is None or ctrl['inserted']:
+                    AlertBase.alert(Configuration.evidences_path, data['fingerprint'], k, c)
 
     @classmethod
     def get_credentials_data(cls, data: dict) -> dict:
