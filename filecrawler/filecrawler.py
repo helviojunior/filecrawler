@@ -27,6 +27,9 @@ class FileCrawler(object):
 
         Configuration.initialize()
 
+        if Configuration.config_file:
+            return
+
         self.run()
 
     def dependency_check(self):
