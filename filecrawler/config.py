@@ -362,10 +362,28 @@ class Configuration(object):
             else:
                 Logger.pl('     {C}git version:{O} %s{W}' % git_ver)
 
+        if Configuration.verbose >= 2:
+            Configuration.print_config()
+
         Logger.pl('  ')
 
     @staticmethod
+    def print_config():
+        sample_config = Configuration.get_config_sample()
+        Logger.pl('\n{+} {W}Running config: {W}')
+        Logger.pl('{GR}%s{W}' % yaml.dump(sample_config, sort_keys=False, default_flow_style=False))
+
+    @staticmethod
     def create_config():
+        sample_config = Configuration.get_config_sample()
+
+        with open(Configuration.config_file, 'w') as f:
+            yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
+
+        Logger.pl('{+} {W}Config file created at {O}%s{W}\n' % Configuration.config_file)
+
+    @staticmethod
+    def get_config_sample() -> dict:
         from .crawlerbase import CrawlerBase
         sample_config = {
             'general': {
@@ -409,11 +427,7 @@ class Configuration(object):
                 if Configuration.verbose >= 1:
                     Tools.print_error(e)
 
-
-        with open(Configuration.config_file, 'w') as f:
-            yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
-
-        Logger.pl('{+} {W}Config file created at {O}%s{W}\n' % Configuration.config_file)
+        return sample_config
 
     @staticmethod
     def get_banner():
