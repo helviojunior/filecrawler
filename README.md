@@ -123,6 +123,21 @@ Use "filecrawler [module] --help" for more information about a command.
 
 [Installing Elasticsearch](https://github.com/helviojunior/filecrawler/blob/main/INSTALL_ELK.md)
 
+# Docker Support
+
+Build filecrawler + ELK image:
+```bash
+$ git clone https://github.com/helviojunior/filecrawler.git
+$ cd filecrawler
+$ docker build -t "filecrawler:latest" .
+```
+
+Using Filecrawler's image:
+
+```bash
+$ docker run -it --rm "filecrawler:latest"
+```
+
 # Credits
 
 This project was inspired of:
