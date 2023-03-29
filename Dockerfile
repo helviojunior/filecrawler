@@ -1,4 +1,4 @@
-FROM sebp/elk:latest as compile
+FROM sebp/elk:8.6.2 as compile
 MAINTAINER Helvio Junior <helvio_junior@hotmail.com>
 
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
