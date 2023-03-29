@@ -50,6 +50,9 @@ RUN git clone https://github.com/helviojunior/filecrawler.git installer
 RUN python3 -m pip install -U installer/
 RUN python3 ./installer/scripts/config_elk.py
 
+VOLUME ~/ /u01/
+RUN mkdir -p /u01/.filecrawler/docker_es
+
 VOLUME ~/.filecrawler/docker_es /var/lib/elasticsearch
 VOLUME ~/.filecrawler/ /root/.filecrawler/
 WORKDIR /root/
