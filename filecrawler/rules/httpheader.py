@@ -42,7 +42,7 @@ class HttpAuthorizationHeader(RuleBase):
             auth = m.group(3)
             data = dict(
                 token=f'{auth_type} {auth}',
-                severity=70
+                severity=60
             )
             auth_type = auth_type.lower()
             try:

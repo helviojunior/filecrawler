@@ -36,6 +36,8 @@ FileCrawler officially supports Python 3.8+.
 ### Extractors:
 * [X] AWS credentials
 * [X] Github and gitlab credentials
+* [X] URL credentials
+* [X] Authorization header credentials
 
 ### Alert:
 * [x] Send credential found via Telegram

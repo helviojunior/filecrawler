@@ -12,6 +12,8 @@
 ## Extractors:
 * [X] AWS credentials
 * [X] Github and gitlab credentials
+* [X] URL credentials
+* [X] Authorization header credentials
 * [ ] Azure systems (Devops etc)
 * [ ] Keystore passwords
 * [ ] Certificates and passwords inside of code and binaries
