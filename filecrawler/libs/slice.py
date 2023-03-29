@@ -109,7 +109,7 @@ class Slice(object):
                 '%s_%s' % (1 if k == 'match' else 0, k): v
                 for l0 in lst
                 for k, v in l0.items()
-                if isinstance(l0, dict) and k != 'fingerprint' and isinstance(v, str)
+                if isinstance(l0, dict) and k not in ('fingerprint', 'severity', 'entropy') and isinstance(v, str)
             }.items(), key=lambda x:x[0], reverse=False)
             if s.strip() != ''
         ]

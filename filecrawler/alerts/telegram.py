@@ -119,6 +119,8 @@ class Telegram(AlertBase):
         '''The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20.'''
         from PIL import Image, ImageDraw
         from filecrawler.util.tools import Tools
+        from filecrawler.config import Configuration
+        from filecrawler.libs.logger import Logger
 
         if not image_file.exists():
             return None
@@ -132,29 +134,42 @@ class Telegram(AlertBase):
                     if img.size[1] > l:
                         l = float(img.size[1])
                     r = 10000.0 / l
-                    img = img.resize((int(img.size[0] * r), int(img.size[1] * r)))
+                    ns = (int(img.size[0] * r), int(img.size[1] * r))
+                    if Configuration.verbose >= 1:
+                        Logger.pl('{?} {GR}Resizing image {O}%s{W} from %s:%s to %s:%s\n' %
+                                  (image_file, img.size[0], img.size[1], ns[0], ns[1]))
+                    img = img.resize(ns)
+
                     changed = True
 
                 f_size = (float(img.size[0]), float(img.size[1]))
-
-                ratio = f_size[1] / f_size[0] if f_size[0] > f_size[1] else f_size[0] / f_size[1]
-                if ratio < 0.8:
-
+                min_w = f_size[1] * 0.8
+                if f_size[0] < min_w:
                     (w, h) = img.size
-                    if w > h:
-                        h = int(w * 0.85)
-                    else:
-                        w = int(h * 0.85)
+                    w = int(min_w) + 1
 
-                        changed = True
-                        n_img = Image.new("RGB", (w, h), color)
-                        n_img.paste(img, (0, 0))
-                        img = n_img.copy()
+                    if Configuration.verbose >= 1:
+                        Logger.pl('{?} {GR}Resizing image {O}%s{W} from %s:%s to %s:%s\n' %
+                                  (image_file, img.size[0], img.size[1], w, h))
+
+                    changed = True
+                    n_img = Image.new("RGB", (w, h), color)
+                    n_img.paste(img, (0, 0))
+                    img = n_img.copy()
+
+                #ratio = f_size[1] / f_size[0] if f_size[0] > f_size[1] else f_size[0] / f_size[1]
+                #if ratio < 0.8:
+                #    (w, h) = img.size
+                #    if w > h:
+                #        h = int(w * 0.85)
+                #    else:
+                #        w = int(h * 0.85)
 
                 if changed:
                     nf = os.path.join(image_file.parent, image_file.name.replace(image_file.suffix, '_telegram.png'))
                     img.save(nf, format='png', subsampling=0, quality=100)
                     image_file = Path(nf)
+
         except Exception as e:
             Tools.print_error(e)
 

@@ -232,11 +232,11 @@ class Tools:
         raise TypeError("Type %s not serializable" % type(obj))
 
     @staticmethod
-    def print_error(error: Exception):
+    def print_error(error: Exception, force: bool = False):
         from filecrawler.config import Configuration
         Color.pl('\n{!} {R}Error:{O} %s{W}' % str(error))
 
-        if Configuration.verbose > 0 or True:
+        if Configuration.verbose >= 2 or force:
             Color.pl('\n{!} {O}Full stack trace below')
             from traceback import format_exc
             Color.p('\n{!}    ')

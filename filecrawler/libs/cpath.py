@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from filecrawler.libs.color import Color
 from filecrawler.util.tools import Tools
 from typing import TypeVar
 
@@ -17,10 +18,7 @@ class CPath(object):
     _path_virtual = None
 
     def __init__(self, base_path: [str, Path],  path: [str, Path], container_path: TCPath = None):
-        self._path = Path(path)
-
-        if not self._path.exists():
-            raise FileNotFoundError(f'Path not found: {self._path}')
+        self._path = Path(str(path))
 
         base_path = str(Path(base_path).resolve())
         self._path_real = str(self._path.resolve())
@@ -31,6 +29,12 @@ class CPath(object):
             self._path_virtual = container_path.path_virtual + f'/{self._path_virtual}'
 
         self._path_virtual = '/' + self._path_virtual.replace('\\\\', '/').replace('\\', '/').replace('//', '/').lstrip('\\/ ')
+
+        if not self._path.exists():
+            Color.pl('\n{!} {R}Error:{O} Path not found{W}'
+                     '\n            {W}Real path.....: {G}%s{W}'
+                     '\n            {W}Virtual path..: {G}%s{W}' % (self._path, self._path_real))
+            raise FileNotFoundError(f'Path not found')
 
     @property
     def name(self):

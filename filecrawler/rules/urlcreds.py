@@ -14,6 +14,8 @@ class UrlCreds(RuleBase):
         self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha)([>]{0,1})@")
         self._exclude_keywords = [
             "\n"  # Cannot exists break line
+            "sqlserver://",
+            "smtp://"
         ]
 
         self._tps = [
@@ -48,11 +50,17 @@ class UrlCreds(RuleBase):
             password = m.group(2)
             entropy = self.entropy(password)
 
+            if username.strip() == '' or password.strip() == '':
+                return {}
+
             if password[0:1] == '$':
                 severity = 70
 
-            if entropy < 0.5:
+            if entropy <= 0.7:
                 severity = 30
+
+            if len(username) <= 2 or len(password) <= 2:
+                return {}
 
             return dict(
                 username=username,
