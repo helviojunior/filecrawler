@@ -16,6 +16,7 @@ class UrlCreds(RuleBase):
             "\n"  # Cannot exists break line
             "sqlserver://",
             "smtp://"
+            "mailto:"
         ]
 
         self._tps = [
