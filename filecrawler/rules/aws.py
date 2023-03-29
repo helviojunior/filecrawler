@@ -8,7 +8,7 @@ class AWS(RuleBase):
     def __init__(self):
         super().__init__('aws-access-token', 'AWS')
 
-        self._regex = re.compile(r"(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}")
+        self._regex = re.compile(r"(?<![A-Z0-9])(A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}")
         self._keywords = ["AKIA",
                      "AGPA",
                      "AIDA",
@@ -32,6 +32,8 @@ class AWS(RuleBase):
 
             pr = re.compile(r"(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d")
 
+            hex_p = re.compile(r"[a-fA-F0-9]+")
+
             start = original_data.find(found) - 200
             if start < 0:
                 start = 0
@@ -44,12 +46,18 @@ class AWS(RuleBase):
 
             for m in p.finditer(original_data, start):
                 if m:
-                    return dict(
+                    if hex_p.sub('', m[0]).strip() != '': #Remove Hex values
+                        return dict(
+                            aws_access_key=found,
+                            aws_access_secret=m[0],
+                            aws_region=region,
+                            severity=100
+                        )
+
+            return dict(
                         aws_access_key=found,
-                        aws_access_secret=m[0],
-                        aws_region=region
+                        aws_region=region,
+                        severity=30
                     )
-                else:
-                    return {}
         except Exception as e:
             return {}

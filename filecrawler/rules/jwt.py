@@ -38,7 +38,8 @@ class JWT(RuleBase):
                     header=json.loads(base64.b64decode(parts[0] + '=' * (-len(parts[0]) % 4)).decode("utf-8")),
                     payload=payload,
                     exp_date=exp_date,
-                    still_valid=exp >= (datetime.datetime.utcnow().timestamp() + 10080)
+                    still_valid=exp >= (datetime.datetime.utcnow().timestamp() + 10080),
+                    severity=80 if exp >= (datetime.datetime.utcnow().timestamp() + 10080) else 10
                 )
             else:
                 return {}

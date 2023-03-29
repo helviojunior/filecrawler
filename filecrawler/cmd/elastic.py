@@ -15,6 +15,7 @@ requests.packages.urllib3.disable_warnings()
 
 class Elastic(CrawlerBase):
     nodes = []
+    _CREDS_WHITE_LIST = []
 
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
@@ -108,24 +109,38 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
-        if not es.indices.exists(index=Configuration.index_name + '_credentials'):
-            request_body = {
-                "settings": {
-                    "number_of_replicas": 1
-                },
+        request_body = {
+            "settings": {
+                "number_of_replicas": 1
+            },
 
-                'mappings': {
-                    'properties': {
-                        'indexing_date': {'type': 'date'},
-                        'fingerprint': {'type': 'keyword'},
-                        'match': {'type': 'keyword'},
-                        'content': {'type': 'text'},
-                        'filtered_file': {'type': 'text'},
-                        'rule': {'type': 'keyword'},
-                    }
+            'mappings': {
+                'properties': {
+                    'indexing_date': {'type': 'date'},
+                    'fingerprint': {'type': 'keyword'},
+                    'match': {'type': 'keyword'},
+                    'content': {'type': 'text'},
+                    'filtered_file': {'type': 'text'},
+                    'rule': {'type': 'keyword'},
+                    'username': {'type': 'keyword'},
+                    'password': {'type': 'keyword'},
+                    'aws_access_key': {'type': 'keyword'},
+                    'aws_access_secret': {'type': 'keyword'},
+                    'aws_region': {'type': 'keyword'},
+                    'token': {'type': 'keyword'},
+                    'severity': {'type': 'double'},
+                    'entropy': {'type': 'double'},
                 }
             }
+        }
 
+        # Update permitted list
+        Elastic._CREDS_WHITE_LIST = [
+            f.lower()
+            for f, _ in request_body['mappings']['properties'].items()
+        ]
+
+        if not es.indices.exists(index=Configuration.index_name + '_credentials'):
             es.indices.create(
                 index=Configuration.index_name + '_credentials',
                 body=request_body
@@ -151,6 +166,16 @@ class Elastic(CrawlerBase):
                 findings = CrawlerBase.get_credentials_data(data)
 
                 for k, f in findings.items():
+                    try:
+                        j_data = json.loads(f.get('content', '{}'))
+                        if isinstance(j_data, dict):
+                            f.update({
+                                k1: v1
+                                for k1, v1 in j_data.items()
+                                if k1.lower() in Elastic._CREDS_WHITE_LIST
+                            })
+                    except:
+                        pass
                     res = es.index(index=Configuration.index_name + '_credentials', id=k, document=f)
                     if res is None or res.get('_shards', {}).get('successful', 0) == 0:
                         if not Configuration.continue_on_error:

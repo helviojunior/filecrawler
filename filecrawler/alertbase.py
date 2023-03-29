@@ -26,6 +26,7 @@ class AlertBase(object):
     _id = ''
     _name = ''
     _config_sample = {}
+    _min_severity = 70
 
     # Static
     _alerters = {}
@@ -40,7 +41,8 @@ class AlertBase(object):
 
         return f'{self._name} <{self._id}>'
 
-    def send_alert(self, match: str, indexing_date: datetime.datetime, rule: str, filtered_file: str, content: str, image_file: Path):
+    def send_alert(self, match: str, indexing_date: datetime.datetime, rule: str,
+                   filtered_file: str, content: str, severity: int, image_file: Path):
         pass
 
     def is_enabled(self) -> bool:
@@ -72,6 +74,10 @@ class AlertBase(object):
     @property
     def name(self) -> str:
         return self._name
+
+    @property
+    def min_severity(self) -> int:
+        return self._min_severity
 
     @property
     def config_sample(self) -> dict:
@@ -143,6 +149,7 @@ class AlertBase(object):
         rule = alert.get('rule', None)
         filtered_file = alert.get('filtered_file', None)
         content = alert.get('content', None)
+        severity = alert.get('severity', 0)
 
         if match is None:
             return
@@ -157,6 +164,7 @@ class AlertBase(object):
                 rule=rule,
                 filtered_file=filtered_file,
                 content=content,
+                severity=severity,
                 image_file=image_name
             )
             del inst

@@ -50,6 +50,7 @@ class RuleBase(object):
     _tps = []
     _fps = []
     _exclude_keywords = []
+    _severity = 70
 
     # Static
     _rules = {}
@@ -243,6 +244,33 @@ class RuleBase(object):
     def hex8_4_4_4_12(cls):
         return r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
 
+    @classmethod
+    def entropy(cls, data, unit='natural'):
+        import math
+        from collections import Counter
+        base = {
+            'shannon': 2.,
+            'natural': math.exp(1),
+            'hartley': 10.
+        }
+
+        if len(data) <= 1:
+            return 0
+
+        counts = Counter()
+
+        for d in data:
+            counts[d] += 1
+
+        ent = 0
+
+        probs = [float(c) / len(data) for c in counts.values()]
+        for p in probs:
+            if p > 0.:
+                ent -= p * math.log(p, base[unit])
+
+        return ent
+
     def run(self, text: str, verbose: bool = False) -> Optional[list]:
         # Pré filter
         if self._keywords is None or len(self._keywords) == 0:
@@ -304,7 +332,7 @@ class RuleBase(object):
         return findings
 
     def _post_processor(self, text: str, match: str) -> dict:
-        data = dict(match=match)
+        data = dict(match=match, severity=self._severity)
         mh = match
         try:
             data.update(self.post_processor(text, match))

@@ -21,7 +21,8 @@ class Slice(object):
 
         findings = self._get_findings(credentials.get('credentials', {}))
 
-        content = Slice.escape_ansi(content.replace('\r', ''))
+        #content = Slice.escape_ansi(content.replace('\r', ''))
+        content = content.replace('\r', '')
         for f in findings:
             content = content.replace(f, '{R}%s{GR}' % f)
 

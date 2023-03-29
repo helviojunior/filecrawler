@@ -648,6 +648,8 @@ class CrawlerBase(object):
                         indexing_date=data['indexing_date'],
                         rule=fl.get('name', ''),
                         filtered_file=data.get('filtered_content', ''),
+                        severity=f.get('severity', 0),
+                        entropy=f.get('entropy', 0),
                         content=json.dumps(f, default=Tools.json_serial, indent=2)
                     )
                     for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])

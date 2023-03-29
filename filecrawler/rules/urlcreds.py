@@ -8,10 +8,10 @@ class UrlCreds(RuleBase):
     def __init__(self):
         super().__init__('url-creds', 'URL Credentials')
 
-        self._regex = re.compile(r"([a-zA-Z0-9_-]{2,30}://[^@:/\n\"' ]{1,256}:[^@:/\n\"' ]{1,256}@[a-zA-Z0-9._-]{2,256}[:0-9]{0,6})")
+        self._regex = re.compile(r"([a-zA-Z0-9_-]{2,30}://[^@:/\n\"' ]{1,256}:[^@:/\n\"' ]{1,256}@[a-zA-Z0-9._-]{2,256}.[a-zA-Z0-9.]{2,256}[:0-9]{0,6})")
         # (?![A-Za-z0-9:._-])
         self._keywords = ["://"]
-        self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username)([>]{0,1}):([<]{0,1})(pass|password|token)([>]{0,1})@")
+        self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha)([>]{0,1})@")
         self._exclude_keywords = [
             "\n"  # Cannot exists break line
         ]
@@ -38,13 +38,28 @@ class UrlCreds(RuleBase):
             p = re.compile(
                 r"[a-zA-Z0-9_-]{2,30}://([^@:]{1,256}):([^@:/\n\"']{1,256})@")
 
+            severity = 100
+
             m = p.match(found)
-            if m:
-                return dict(
-                    username=m.group(1),
-                    password=m.group(2),
-                )
-            else:
+            if not m:
                 return {}
+
+            username = m.group(1)
+            password = m.group(2)
+            entropy = self.entropy(password)
+
+            if password[0:1] == '$':
+                severity = 70
+
+            if entropy < 0.5:
+                severity = 30
+
+            return dict(
+                username=username,
+                password=password,
+                severity=severity,
+                entropy=entropy
+            )
+
         except:
             return {}
