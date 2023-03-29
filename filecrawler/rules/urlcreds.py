@@ -61,8 +61,11 @@ class UrlCreds(RuleBase):
             if entropy <= 0.7:
                 severity = 30
 
+            if entropy <= 1.5 and 'localhost' in found.lower():
+                severity = 30
+
             if len(username) <= 2 or len(password) <= 2:
-                return {}
+                severity = 50
 
             return dict(
                 username=username,
