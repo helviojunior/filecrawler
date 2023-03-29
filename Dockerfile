@@ -1,6 +1,8 @@
 FROM sebp/elk:8.6.2 as compile
 MAINTAINER Helvio Junior <helvio_junior@hotmail.com>
 
+USER root
+
 SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
 
 # Generate locale C.UTF-8
@@ -27,6 +29,7 @@ RUN apt update \
       libmagic-dev \
       curl \
       gpg \
+      vim \
   && apt clean all \
   && apt autoremove
 
@@ -38,28 +41,30 @@ RUN apt update \
 #  && apt clean all \
 #  && apt autoremove
 
-RUN mkdir -p /u01/filecrawler
-RUN mkdir -p /u01/es_data/elasticsearch
-WORKDIR /u01/filecrawler
+ENV ES_HOME /opt/elasticsearch
+
+WORKDIR /tmp
 RUN python3 -m pip install -U pip
 #RUN python3 -m pip install -U filecrawler
 RUN git clone https://github.com/helviojunior/filecrawler.git installer
 RUN python3 -m pip install -U installer/
-WORKDIR /u01/filecrawler
 RUN python3 ./installer/scripts/config_elk.py
-#RUN systemctl enable elasticsearch \
-#    && systemctl start elasticsearch \
-#    && systemctl enable kibana \
-#    && systemctl start kibana
-RUN filecrawler --create-config -v
-ENV ES_HOME /opt/elasticsearch
 
+VOLUME ~/.filecrawler/docker_es /var/lib/elasticsearch
+VOLUME ~/.filecrawler/ /root/.filecrawler/
+WORKDIR /root/
+
+RUN filecrawler --create-config -v
 
 #FROM ubuntu:jammy
 EXPOSE 9200 80 443
 WORKDIR /u01/filecrawler
 #COPY --from=compile /opt/venv /opt/venv
 #ENV PATH="/opt/venv/bin:$PATH"
-ENTRYPOINT ["/bin/bash"]
+ENV ES_HEAP_SIZE="2g"
+ENV LS_HEAP_SIZE="1g"
+VOLUME /var/lib/elasticsearch
+ENTRYPOINT ["/usr/local/bin/start.sh"]
+CMD ["filecrawler"]
 
 #https://phoenixnap.com/kb/elk-stack-docker
