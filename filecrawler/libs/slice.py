@@ -106,8 +106,8 @@ class Slice(object):
         return [
             s for _, s in
             sorted({
-                '%s_%s' % (1 if k == 'match' else 0, k): v
-                for l0 in lst
+                '%s_%s_%s' % (1 if k == 'match' else 0, i, k): v
+                for i, l0 in enumerate(lst)
                 for k, v in l0.items()
                 if isinstance(l0, dict) and k not in ('fingerprint', 'severity', 'entropy') and isinstance(v, str)
             }.items(), key=lambda x:x[0], reverse=False)
