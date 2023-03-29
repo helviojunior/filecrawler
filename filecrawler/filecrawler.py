@@ -128,8 +128,10 @@ def run():
             Color.pl(err)
 
         Color.pl('\n{!} {R}Exiting{W}\n')
+        Tools.exit_gracefully(1)
 
     except KeyboardInterrupt:
         Color.pl('\n{!} {O}interrupted, shutting down...{W}')
+        Tools.exit_gracefully(2)
 
-    Tools.exit_gracefully(2)
+    Tools.exit_gracefully(0)

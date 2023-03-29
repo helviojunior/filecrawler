@@ -59,6 +59,6 @@ EXPOSE 9200 80 443
 WORKDIR /u01/filecrawler
 COPY --from=compile /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/bin/bash"]
 
 #https://phoenixnap.com/kb/elk-stack-docker
