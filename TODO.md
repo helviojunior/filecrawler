@@ -28,3 +28,6 @@
 * [x] Stand-alone local files
 * [ ] Splunk
 * [ ] Other databases and log systems
+
+### Alert:
+* [x] Telegram
