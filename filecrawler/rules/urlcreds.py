@@ -3,6 +3,7 @@ import re
 from filecrawler.rulebase import RuleBase
 
 
+
 class UrlCreds(RuleBase):
 
     def __init__(self):
@@ -13,7 +14,7 @@ class UrlCreds(RuleBase):
         self._keywords = ["://"]
         self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha|pwd)([>]{0,1})@")
         self._exclude_keywords = [
-            "\n"  # Cannot exists break line
+            "\n",  # Cannot exists break line
             "sqlserver://",
             "smtp://",
             "mailto:"
@@ -66,6 +67,17 @@ class UrlCreds(RuleBase):
 
             if len(username) <= 2 or len(password) <= 2:
                 severity = 50
+
+            if 'gitlab' in found:
+                # try to identify to decrease severity
+                try:
+                    from filecrawler.rules.gitlab import GitlabUrlToken
+                    tst = GitlabUrlToken()
+                    f1 = tst.run(found)
+                    if f1 is not None and len(f1) > 0:
+                        severity = 50
+                except:
+                    pass
 
             return dict(
                 username=username,
