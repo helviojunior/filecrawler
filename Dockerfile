@@ -50,23 +50,21 @@ RUN git clone https://github.com/helviojunior/filecrawler.git installer
 RUN python3 -m pip install -U installer/
 RUN python3 ./installer/scripts/config_elk.py
 
+RUN mkdir /u01/
+RUN mkdir /u02/
 VOLUME ~/ /u01/
-RUN mkdir -p /u01/.filecrawler/docker_es
+VOLUME ./ /u02/
 
-VOLUME ~/.filecrawler/docker_es /var/lib/elasticsearch
-VOLUME ~/.filecrawler/ /root/.filecrawler/
-WORKDIR /root/
+WORKDIR /u02/
 
-RUN filecrawler --create-config -v
+#RUN filecrawler --create-config -v
 
 #FROM ubuntu:jammy
 EXPOSE 9200 80 443
-WORKDIR /u01/filecrawler
 #COPY --from=compile /opt/venv /opt/venv
 #ENV PATH="/opt/venv/bin:$PATH"
 ENV ES_HEAP_SIZE="2g"
 ENV LS_HEAP_SIZE="1g"
-VOLUME /var/lib/elasticsearch
 ENTRYPOINT ["/usr/local/bin/start.sh"]
 CMD ["filecrawler"]
 

@@ -17,6 +17,7 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
         'http.port': 9200,
         'cluster.name': 'filecrawler',
         'node.name': 'elk',
+        'path.data': '/u01/es_data/',
         'xpack.security.enabled': False,
         'xpack.security.enrollment.enabled': False,
         'xpack.security.http.ssl': {'enabled': False},
