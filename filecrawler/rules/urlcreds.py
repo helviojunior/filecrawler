@@ -11,7 +11,7 @@ class UrlCreds(RuleBase):
         self._regex = re.compile(r"([a-zA-Z0-9_-]{2,30}://[^@:/\n\"' ]{1,256}:[^@:/\n\"' ]{1,256}@[a-zA-Z0-9._-]{2,256}.[a-zA-Z0-9.]{2,256}[:0-9]{0,6})")
         # (?![A-Za-z0-9:._-])
         self._keywords = ["://"]
-        self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha)([>]{0,1})@")
+        self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha|pwd)([>]{0,1})@")
         self._exclude_keywords = [
             "\n"  # Cannot exists break line
             "sqlserver://",
