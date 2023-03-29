@@ -228,7 +228,13 @@ class Slice(object):
 
     def save_png(self, filename):
         o = Ansi2Image(0, 0, font_name=Ansi2Image.get_default_font_name(), font_size=13)
-        o.loads(self._table)
+        if len(self._table.split('\n')) > 200:
+            text = '\n'.join(self._table.split('\n')[0:200])
+            text += Color.s('  {W}%s{W}  \n' % Slice.format_line_number('...', 3))
+            text += Color.s('\n  {R}ATTENTION!!!{O} \n  %s{W}\n' % 'Displayed content is truncated due to maximum viewable content limit')
+            o.loads(text)
+        else:
+            o.loads(self._table)
         o.min_margin = 10
         o.max_margin = 30
         o.calc_size(margin=0.01)
