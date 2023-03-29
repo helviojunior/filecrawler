@@ -15,7 +15,7 @@ class UrlCreds(RuleBase):
         self._exclude_keywords = [
             "\n"  # Cannot exists break line
             "sqlserver://",
-            "smtp://"
+            "smtp://",
             "mailto:"
         ]
 
@@ -33,7 +33,8 @@ class UrlCreds(RuleBase):
             self.generate_sample_secret("url", "http://domain.com.br teste@123.com"),
             self.generate_sample_secret("url", "http://user:pass@domain.com.br"),
             self.generate_sample_secret("url", "http://<username>:<password>@domain.com.br"),
-            self.generate_sample_secret("url", "http://<username>:<token>@domain.com.br")
+            self.generate_sample_secret("url", "http://<username>:<token>@domain.com.br"),
+            self.generate_sample_secret("url", "http://mailto:teste@domain.com.br")
         ]
 
     def post_processor(self, original_data: str, found: str) -> dict:
