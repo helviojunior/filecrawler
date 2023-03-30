@@ -64,6 +64,7 @@ RUN printf "#!/bin/bash \n \
 mkdir -p /u01/.filecrawler/es_data/ 2>/dev/null \n \
 python3 /root/config_elk.py \n \
 chown -R elasticsearch:elasticsearch /u01/ \n \
+ln -s /u01/.filecrawler/ /root/.filecrawler/  \n \
 /etc/init.d/elasticsearch start \n \
 /etc/init.d/kibana start \n \
 /bin/bash \n \
