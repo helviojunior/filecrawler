@@ -1,4 +1,5 @@
 import re
+from urllib.parse import unquote
 
 from filecrawler.rulebase import RuleBase
 
@@ -51,13 +52,24 @@ class UrlCreds(RuleBase):
 
             username = m.group(1)
             password = m.group(2)
+
+            try:
+                username = unquote(username)
+            except:
+                pass
+
+            try:
+                password = unquote(password)
+            except:
+                pass
+
             entropy = self.entropy(password)
 
             if username.strip() == '' or password.strip() == '':
                 return {}
 
             if password[0:1] == '$':
-                severity = 70
+                severity = 60
 
             if entropy <= 0.7:
                 severity = 30
