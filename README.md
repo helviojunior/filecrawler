@@ -132,10 +132,14 @@ $ docker build --no-cache -t "filecrawler:latest" https://github.com/helviojunio
 
 Using Filecrawler's image:
 
-Goes to path to be indexed and run the command bellow
+Goes to path to be indexed and run the commands bellow
 
 ```bash
 $ docker run -v "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
+
+#Inside of docker run
+$ filecrawler --create-config -v
+$ filecrawler --path /u02/ -T 30 -v --elastic --index-name filecrawler 
 ```
 
 # Credits
