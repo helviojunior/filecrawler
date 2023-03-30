@@ -81,6 +81,7 @@ EXPOSE 9200 80 443
 ENV ES_HEAP_SIZE="2g"
 ENV LS_HEAP_SIZE="1g"
 ENV KBN_PATH_CONF=/opt/kibana/config/
+ENV LOGSTASH_START=0
 ENTRYPOINT ["/root/start.sh"]
 
 #https://phoenixnap.com/kb/elk-stack-docker
