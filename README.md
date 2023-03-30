@@ -127,6 +127,7 @@ Use "filecrawler [module] --help" for more information about a command.
 
 Build filecrawler + ELK image:
 ```bash
+$ sysctl -w vm.max_map_count=262144
 $ docker build --no-cache -t "filecrawler:latest" https://github.com/helviojunior/filecrawler.git#main
 ```
 
@@ -135,7 +136,7 @@ Using Filecrawler's image:
 Goes to path to be indexed and run the commands bellow
 
 ```bash
-$ docker run -v "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
+$ docker run -p 443:443 -p 80:80 -p 9200:9200 -v "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
 
 #Inside of docker run
 $ filecrawler --create-config -v

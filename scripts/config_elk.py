@@ -13,7 +13,7 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
     data.update({
         'network.host': '0.0.0.0',
         'network.publish_host': '127.0.0.1',
-        'http.host': '127.0.0.1',
+        'http.host': '0.0.0.0',
         'http.port': 9200,
         'cluster.name': 'filecrawler',
         'node.name': 'elk',

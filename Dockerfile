@@ -76,13 +76,16 @@ RUN chmod +x /root/start.sh
 #RUN filecrawler --create-config -v
 
 #FROM ubuntu:jammy
-EXPOSE 9200 80 443
+EXPOSE 80/tcp
+EXPOSE 443/tcp
+EXPOSE 9200/tcp
 #COPY --from=compile /opt/venv /opt/venv
 #ENV PATH="/opt/venv/bin:$PATH"
-ENV ES_HEAP_SIZE="2g"
-ENV LS_HEAP_SIZE="1g"
+ENV ES_HEAP_SIZE="3g"
+ENV LS_HEAP_SIZE="125m"
 ENV KBN_PATH_CONF=/opt/kibana/config/
 ENV LOGSTASH_START=0
+ENV MAX_MAP_COUNT=262144
 ENTRYPOINT ["/root/start.sh"]
 
 #https://phoenixnap.com/kb/elk-stack-docker
