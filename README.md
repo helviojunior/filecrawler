@@ -127,13 +127,13 @@ Use "filecrawler [module] --help" for more information about a command.
 
 Build filecrawler + ELK image:
 ```bash
-$ docker build --no-cache -t "filecrawler:latest" github.com/helviojunior/filecrawler
+$ docker build --no-cache -t "filecrawler:latest" https://github.com/helviojunior/filecrawler.git#main
 ```
 
 Using Filecrawler's image:
 
 ```bash
-$ docker run --network=elknet "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
+$ docker run -v "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
 ```
 
 # Credits
