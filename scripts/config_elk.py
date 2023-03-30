@@ -26,3 +26,14 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
 
 with open('/etc/elasticsearch/elasticsearch.yml', 'w') as f:
     yaml.dump(data, f, sort_keys=False, default_flow_style=False)
+
+with open('/opt/kibana/config/kibana.yml', 'r') as f:
+    kibana = dict(yaml.load(f, Loader=yaml.FullLoader))
+    kibana.update({
+        'server.host': '0.0.0.0',
+        'server.port': 80,
+    })
+
+with open('/opt/kibana/config/kibana.yml', 'w') as f:
+    yaml.dump(kibana, f, sort_keys=False, default_flow_style=False)
+

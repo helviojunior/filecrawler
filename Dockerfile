@@ -42,20 +42,35 @@ RUN apt update \
 #  && apt autoremove
 
 ENV ES_HOME /opt/elasticsearch
+RUN echo FileCrawler > /etc/hostname
 
 WORKDIR /tmp
+RUN cp /etc/init.d/elasticsearch init.sh
+RUN cat init.sh | sed 's|^DATA_DIR.*|DATA_DIR=/u01/.filecrawler/es_data|' > /etc/init.d/elasticsearch
 RUN python3 -m pip install -U pip
 #RUN python3 -m pip install -U filecrawler
 RUN git clone https://github.com/helviojunior/filecrawler.git installer
 RUN python3 -m pip install -U installer/
 RUN python3 ./installer/scripts/config_elk.py
+RUN cp ./installer/scripts/config_elk.py /root/
 
 RUN mkdir /u01/
 RUN mkdir /u02/
-VOLUME ~/ /u01/
-VOLUME ./ /u02/
 
 WORKDIR /u02/
+
+RUN printf "#!/bin/bash \n \
+# Starter \n \
+mkdir -p /u01/.filecrawler/es_data/ 2>/dev/null \n \
+python3 /root/config_elk.py \n \
+chown -R elasticsearch:elasticsearch /u01/ \n \
+/etc/init.d/elasticsearch start \n \
+/etc/init.d/kibana start \n \
+/bin/bash \n \
+/etc/init.d/elasticsearch stop \n \
+/etc/init.d/kibana stop\n" > /root/start.sh
+
+RUN chmod +x /root/start.sh
 
 #RUN filecrawler --create-config -v
 
@@ -65,7 +80,7 @@ EXPOSE 9200 80 443
 #ENV PATH="/opt/venv/bin:$PATH"
 ENV ES_HEAP_SIZE="2g"
 ENV LS_HEAP_SIZE="1g"
-ENTRYPOINT ["/usr/local/bin/start.sh"]
-CMD ["filecrawler"]
+ENV KBN_PATH_CONF=/opt/kibana/config/
+ENTRYPOINT ["/root/start.sh"]
 
 #https://phoenixnap.com/kb/elk-stack-docker

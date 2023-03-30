@@ -133,7 +133,7 @@ $ docker build --no-cache -t "filecrawler:latest" github.com/helviojunior/filecr
 Using Filecrawler's image:
 
 ```bash
-$ docker run -it "filecrawler:latest"
+$ docker run -v "$HOME":/u01/ -v "$PWD":/u02/ -it "filecrawler:latest"
 ```
 
 # Credits
