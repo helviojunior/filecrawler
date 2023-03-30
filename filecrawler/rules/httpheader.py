@@ -81,6 +81,9 @@ class HttpAuthorizationHeader(RuleBase):
                         if entropy <= 0.7:
                             severity = 30
 
+                        if entropy < 1.7:
+                            severity = 65
+
                         if len(username) <= 2 or len(password) <= 2:
                             return {}
 

@@ -74,7 +74,16 @@ class UrlCreds(RuleBase):
             if entropy <= 0.7:
                 severity = 30
 
-            if entropy <= 1.5 and 'localhost' in found.lower():
+            if entropy < 1.7:
+                severity = 65
+
+            if entropy <= 2 and '@localhost' in found.lower():
+                severity = 30
+
+            if entropy <= 2 and '@127.0.0.1' in found.lower():
+                severity = 30
+
+            if entropy <= 1.5 and 'example' in found.lower():
                 severity = 30
 
             if len(username) <= 2 or len(password) <= 2:
