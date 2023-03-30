@@ -21,8 +21,8 @@ class Telegram(AlertBase):
         super().__init__('telegram', 'Telegram Alerter')
 
         self._config_sample = dict(
-            bot_id='telegram_bot_id',
-            chat_id='telegram_chat_id',
+            bot_id='',
+            chat_id='',
             min_severity=70,
         )
 
@@ -32,6 +32,9 @@ class Telegram(AlertBase):
             self._chat_id = lconfig.get('chat_id', None)
             self._min_severity = lconfig.get('min_severity', self._min_severity)
             del lconfig
+
+            if self._bot_id.strip() == '':
+                self._bot_id = None
 
             if self._bot_id is not None and self._bot_id[0:3].lower() != 'bot':
                 self._bot_id = f'bot{self._bot_id}'
