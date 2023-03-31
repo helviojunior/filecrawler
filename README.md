@@ -42,6 +42,18 @@ FileCrawler officially supports Python 3.8+.
 ### Alert:
 * [x] Send credential found via Telegram
 
+## Sample outputs
+
+In additional File Crawler save some images with the found leaked credentials at **~/.filecrawler/** directory like the images bellow
+
+![Example 001](https://github.com/helviojunior/filecrawler/blob/main/images/example_001.jpg)
+
+![Example 002](https://github.com/helviojunior/filecrawler/blob/main/images/example_002.jpg)
+
+![Example 003](https://github.com/helviojunior/filecrawler/blob/main/images/example_003.jpg)
+
+![Example 004](https://github.com/helviojunior/filecrawler/blob/main/images/example_004.jpg)
+
 ## Installing
 
 ### Dependencies
