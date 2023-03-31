@@ -41,7 +41,7 @@ class GitlabUrlToken(RuleBase):
     def __init__(self):
         super().__init__('gitlab-oauth-url', 'GitHub OAuth URL Access Token')
 
-        self._regex = self._regex = re.compile(r"(http|https|ssh|git)://oauth2:[^@:/\n\"' ]{16,256}@(?:(?:[a-zA-Z0-9-_]+\.)?[a-zA-Z_]+\.)?(gitlab)[a-zA-Z0-9._-]{0,256}[:0-9]{0,6}")
+        self._regex = self._regex = re.compile(r"(http|https|ssh|git)://(oauth2|gitlab-ci-token):[^@:/\n\"' ]{16,256}@(?:(?:[a-zA-Z0-9-_]+\.)?[a-zA-Z_]+\.)?(gitlab)[a-zA-Z0-9._-]{0,256}[:0-9]{0,6}")
         self._keywords = ["://"]
 
         #/^[a-zA-Z0-9_.+-]+@(?:(?:[a-zA-Z0-9-]+\.)?[a-zA-Z]+\.)?(domain|domain2)\.com$/g
@@ -61,7 +61,7 @@ class GitlabUrlToken(RuleBase):
     def post_processor(self, original_data: str, found: str) -> dict:
         try:
             p = re.compile(
-                r".*://oauth2:([^@:/\n\"']{16,256})@((?:(?:[a-zA-Z0-9-_]+\.)?[a-zA-Z_]+\.)?(gitlab)[a-zA-Z0-9._-]{0,256}[:0-9]{0,6})")
+                r".*://(oauth2|gitlab-ci-token):([^@:/\n\"']{16,256})@((?:(?:[a-zA-Z0-9-_]+\.)?[a-zA-Z_]+\.)?(gitlab)[a-zA-Z0-9._-]{0,256}[:0-9]{0,6})")
 
             severity = 100
 
@@ -69,8 +69,9 @@ class GitlabUrlToken(RuleBase):
             if not m:
                 return {}
 
-            token = m.group(1)
-            host = m.group(2)
+            username = m.group(1)
+            token = m.group(2)
+            host = m.group(3)
             entropy = self.entropy(token)
 
             if token[0:1] == '$':
@@ -83,6 +84,7 @@ class GitlabUrlToken(RuleBase):
                 severity = 30
 
             return dict(
+                username=username,
                 token=token,
                 host=host,
                 severity=severity,
