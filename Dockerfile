@@ -67,7 +67,6 @@ ln -s /u01/ /root/.filecrawler  \n \
 /etc/init.d/elasticsearch start \n \
 /etc/init.d/kibana start \n \
 /bin/bash \n \
-chown -R root:root /u01/.filecrawler/ \n \
 /etc/init.d/elasticsearch stop \n \
 /etc/init.d/kibana stop\n" > /root/start.sh
 
