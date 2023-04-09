@@ -9,6 +9,7 @@ from pathlib import Path
 from re import Pattern
 from typing import Iterator, Optional, TypeVar
 
+
 from filecrawler.libs.rule import Rule
 from filecrawler.libs.color import Color
 from filecrawler.libs.logger import Logger
@@ -116,19 +117,27 @@ class RuleBase(object):
             Logger.pl('')
 
         for iclass in RuleBase.__subclasses__():
-            t = iclass()
-            if t.id in rules:
-                raise Exception(f'Duplicated rule id [{t.id}]: {iclass.__module__}.{iclass.__qualname__}')
+            if verbose >= 2:
+                Color.pl('{?} Loading rule: %s' % f'{iclass.__module__}.{iclass.__qualname__}')
+            try:
+                t = iclass()
+                if t.id in rules:
+                    raise Exception(f'Duplicated rule id [{t.id}]: {iclass.__module__}.{iclass.__qualname__}')
 
-            t.validate(verbose)
+                t.validate(verbose)
 
-            rules[t.id] = Rule(
-                id=t.id,
-                name=t.name,
-                rule=str(iclass.__module__),
-                qualname=str(iclass.__qualname__),
-                class_name=iclass,
-            )
+                rules[t.id] = Rule(
+                    id=t.id,
+                    name=t.name,
+                    rule=str(iclass.__module__),
+                    qualname=str(iclass.__qualname__),
+                    class_name=iclass,
+                )
+            except Exception as e:
+                from filecrawler.config import Configuration
+                Color.pl('{-} {R}Error loading : %s' % f'{iclass.__module__}.{iclass.__qualname__}')
+                if not Configuration.continue_on_error:
+                    raise e
 
         RuleBase._rules = rules
         return RuleBase._rules
