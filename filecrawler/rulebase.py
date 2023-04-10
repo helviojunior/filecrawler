@@ -212,9 +212,8 @@ class RuleBase(object):
         return re.compile(txt)
 
     @classmethod
-    def generate_unique_token_regex(cls, secret_regex: str, flags: str = '') -> Pattern:
+    def generate_unique_token_regex(cls, secret_regex: str) -> Pattern:
         txt = _CASE_INSENSITIVE
-        txt += flags
         txt += _SECRET_PREFIX_UNIQUE
         txt += secret_regex
         txt += _SECRET_SUFFIX

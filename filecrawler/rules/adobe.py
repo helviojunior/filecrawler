@@ -20,7 +20,7 @@ class AdobeClientSecret(RuleBase):
     def __init__(self):
         super().__init__('adobe-client-secret', 'Adobe Client Secret')
 
-        self._regex = self.generate_unique_token_regex(r'(p8e-)[a-z0-9]{32}', r'(?i)')
+        self._regex = self.generate_unique_token_regex(r'(p8e-)[a-z0-9]{32}')
         self._keywords = ["p8e-"]
 
         self._tps = ['adobeClient = "p8e-%s"' % self.new_secret(self.hex("32"))]
