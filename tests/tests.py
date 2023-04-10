@@ -11,6 +11,8 @@ from filecrawler.libs.color import Color
 
 
 def test_001_create_config():
+    Color.pl('{+} Creating config file...{W}')
+
     sys.argv = ['filecrawler', '-vvv', '--create-config']
     if sys.stdout.encoding is None:
         # Output is redirected to a file
@@ -47,6 +49,7 @@ def test_001_create_config():
 
 
 def test_002_change_config():
+    Color.pl('{+} Changing config file...{W}')
     try:
 
         with open('config.yml', 'r') as f:
@@ -73,6 +76,7 @@ def test_002_change_config():
         assert False
 
 def test_003_run_local():
+    Color.pl('{+} Running local crawler...{W}')
     sys.argv = ['filecrawler', '-vvv', '--index-name', 'test', '--path', '.', '--local', '-o', '/tmp']
     if sys.stdout.encoding is None:
         # Output is redirected to a file
