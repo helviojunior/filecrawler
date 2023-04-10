@@ -275,9 +275,12 @@ class CrawlerBase(object):
 
     def status(self, text, sync):
         try:
+            _, w = os.pipe()
+            isatty = os.isatty(w)
             while sync.running:
-                self.write_status(
-                    f' {text} read: {CrawlerBase.read}, ignored: {CrawlerBase.ignored}, integrated: {CrawlerBase.integrated}')
+                if isatty:
+                    self.write_status(
+                        f' {text} read: {CrawlerBase.read}, ignored: {CrawlerBase.ignored}, integrated: {CrawlerBase.integrated}')
                 time.sleep(0.3)
         except KeyboardInterrupt as e:
             raise e
