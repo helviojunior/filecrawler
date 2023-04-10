@@ -56,7 +56,10 @@ jobs:
         include:
           - python-version: "3.11"
             experimental: true
-            os: [ubuntu-latest, macos-latest]
+            os: ubuntu-latest
+          - python-version: "3.11"
+              experimental: true
+              os: macos-latest
     continue-on-error: ${{ matrix.experimental }}
 
     steps:
