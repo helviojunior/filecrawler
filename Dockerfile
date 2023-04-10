@@ -45,6 +45,7 @@ ENV ES_HOME /opt/elasticsearch
 RUN echo FileCrawler > /etc/hostname
 
 WORKDIR /tmp
+ENV GIT_SSL_NO_VERIFY="true"
 RUN cp /etc/init.d/elasticsearch init.sh
 RUN cat init.sh | sed 's|^DATA_DIR.*|DATA_DIR=/u01/es_data|' > /etc/init.d/elasticsearch
 RUN python3 -m pip install -U pip
