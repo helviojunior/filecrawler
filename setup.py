@@ -38,7 +38,7 @@ with open(f"{here}/README.md", "r", encoding="utf-8") as f:
 
 # Find package Data
 # each directory must contain __init__.py
-package_data = {"": ["LICENSE", "requirements.txt"]}
+package_data = {"": ["LICENSE"]}
 package_data.update(
     {
         dp.replace(here.strip('/') + '/', '').lstrip('/. ').replace('\\', '/').replace('/', '.'): [
@@ -62,6 +62,7 @@ setup(
     url=meta["__url__"],
     packages=find_packages(),
     package_data=package_data,
+    data_files=[('', ['requirements.txt'])],
     #include_package_data=True,
     python_requires=">=3.8, <4",
     install_requires=requires,
