@@ -105,7 +105,10 @@ class Color(object):
     @staticmethod
     def clear_entire_line():
         import os
-        (rows, columns) = os.popen('stty size', 'r').read().split()
+        try:
+            (_, columns) = os.popen('stty size', 'r').read().split()
+        except:
+            columns = 150
         Color.p("\r" + (" " * int(columns)) + "\r")
 
     @staticmethod
