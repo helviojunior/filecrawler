@@ -80,7 +80,7 @@ EXPOSE 443/tcp
 EXPOSE 9200/tcp
 #COPY --from=compile /opt/venv /opt/venv
 #ENV PATH="/opt/venv/bin:$PATH"
-ENV ES_HEAP_SIZE="3g"
+ENV ES_HEAP_SIZE="6g"
 ENV LS_HEAP_SIZE="125m"
 ENV KBN_PATH_CONF=/opt/kibana/config/
 ENV LOGSTASH_START=0
