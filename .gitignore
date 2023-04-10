@@ -62,3 +62,7 @@ config.yml
 # LibMagic #
 #################
 !**/libmagic_windows/*
+
+# FakeData #
+#################
+!**/fakedata/*

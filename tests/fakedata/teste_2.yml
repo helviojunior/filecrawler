@@ -1,0 +1,16 @@
+api-fake:
+  restart: always
+  image: 10.69.20.159:8086/microservice/api-fake:latest
+  mem_limit: 333g
+  environment:
+    - HTTP_PROXY=https://m4v3r1ck:MinhaSenhaSuperSegura@proxy.minhaempresa.corp:8080
+    - HTTPS_PROXY=https://m4v3r1ck:MinhaSenhaSuperSegura@proxy.minhaempresa.corp:8080
+    - TZ="America/Sao_Paulo"
+    - JAVA_OPTS=-Djava.security.egd=file:/dev/./urandom -Dhttps.proxySet=true -Dhttps.proxyHost=proxy.minhaempresa.corp -Dhttps.proxyPort=8080 -Dhttps.proxyUser=m4v3r1ck -Dhttps.proxyPassword=MinhaSenhaSuperSegura -Dhttp.proxySet=true -Dhttp.proxyHost=proxy.minhaempresa.corp -Dhttp.proxyPort=8080 -Dhttp.proxyUser=m4v3r1ck -Dhttp.proxyPassword=MinhaSenhaSuperSegura -Dhttp.nonProxyHosts=10.20.55.35|10.21.54.144 -Dhttps.nonProxyHosts=10.20.55.35|10.21.54.144
+  ports:
+    - "8080:8080"
+  volumes:
+    - "/tmp:/tmp"
+    - "/opt/testd/api-fake/config:/config"
+    - "/opt/CA/:/opt/CA/"
+    - "/etc/localtime:/etc/localtime"

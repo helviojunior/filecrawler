@@ -77,7 +77,11 @@ def test_002_change_config():
 
 def test_003_run_local():
     Color.pl('\n\n{+} Running local crawler...{W}')
-    sys.argv = ['filecrawler', '-vvv', '--index-name', 'test', '--path', '.', '--local', '-o', '/tmp']
+
+    here = os.path.abspath(os.path.dirname(__file__))
+
+    sys.argv = ['filecrawler', '-vvv', '--index-name', 'test',
+                '--path', os.path.join(here, 'fakedata'), '--local', '-o', '/tmp']
     if sys.stdout.encoding is None:
         # Output is redirected to a file
         sys.stdout = codecs.getwriter('latin-1')(sys.stdout)
