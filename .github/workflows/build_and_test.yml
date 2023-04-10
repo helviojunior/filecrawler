@@ -99,6 +99,8 @@ jobs:
           python setup.py sdist
 
   docker_test:
+    name: Check docker build and run
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -122,13 +124,13 @@ jobs:
         run: |
           docker run --rm ${{ env.TEST_TAG }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: false
-          tags: ${{ env.LATEST_TAG }}
+      #- name: Build and push
+      #  uses: docker/build-push-action@v4
+      #  with:
+      #    context: .
+      #    platforms: linux/amd64,linux/arm64
+      #    push: false
+      #    tags: ${{ env.LATEST_TAG }}
 
   publish:
     name: Publish on Test Environment
