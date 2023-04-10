@@ -23,7 +23,8 @@ class Configuration(object):
     version = '0.0.0'
     name = ""
 
-    initialized = False # Flag indicating config has been initialized
+    python_version = '0.0.0'
+    initialized = False  # Flag indicating config has been initialized
     verbose = 0
     module = None
     cmd_line = ''
@@ -169,6 +170,9 @@ class Configuration(object):
             Color.pl('     {O}Windows: report bug{W}')
             exit(1)
 
+        python_version = (f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}-'
+                          f'{sys.version_info.releaselevel}')
+
         if args.args.tasks:
             Configuration.tasks = int(float(args.args.tasks) * 0.8)
             Configuration.tasks_integrator = args.args.tasks - Configuration.tasks
@@ -187,6 +191,7 @@ class Configuration(object):
 
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
+        Logger.pl('     {C}python version:{O} %s{W}' % python_version)
         Logger.pl('     {C}java version:{O} %s{W}' % java_ver)
         Logger.pl('     {C}worker tasks:{O} %s{W}' % Configuration.tasks)
         Logger.pl('     {C}integrator tasks:{O} %s{W}' % Configuration.tasks_integrator)

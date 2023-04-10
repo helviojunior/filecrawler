@@ -28,10 +28,10 @@ class Color(object):
 
     # Helper string replacements
     replacements = {
-        '{+}': ' {W}{D}[{W}{G}+{W}{D}]{W}',
-        '{!}': ' {O}[{R}!{O}]{W}',
-        '{?}': ' {W}{D}[{W}{C}?{W}{D}]{W}',
-        '{*}': ' {W}[{B}*{W}]'
+        '{+}': '{W}{D}[{W}{G}+{W}{D}]{W}',
+        '{!}': '{O}[{R}!{O}]{W}',
+        '{?}': '{W}{D}[{W}{C}?{W}{D}]{W}',
+        '{*}': '{W}[{B}*{W}]'
     }
 
     gray_scale = {

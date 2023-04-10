@@ -207,7 +207,30 @@ class Process(object):
             raise e  # process cannot be killed
 
     @staticmethod
-    def kill(code=0):
+    def kill(pid=0):
         ''' Deletes temp and exist with the given code '''
 
-        os.kill(os.getpid(), signal.SIGTERM)
+        os.kill(os.getpid() if pid == 0 else pid, signal.SIGTERM)
+
+    @staticmethod
+    def list_process():
+        import psutil
+        # Iterate over all running process
+        for proc in psutil.process_iter():
+            try:
+                # Get process name & pid from process object.
+
+                cmdline = proc.cmdline()
+                if isinstance(cmdline, list):
+                    cmdline = ' '.join(cmdline)
+                yield proc.pid, proc.name(), cmdline
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+
+    @staticmethod
+    def find_process(name: str):
+        for p in Process.list_process():
+            if name in p[1] or name in p[2]:
+                return p
+
+        return None

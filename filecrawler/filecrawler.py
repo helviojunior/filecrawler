@@ -64,6 +64,8 @@ class FileCrawler(object):
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             Logger.pl('{+} {C}start time {O}%s{W}' % timestamp)
 
+            FileCrawler.load_tika()
+
             # Execute the specific actions
             Configuration.module.run()
 
@@ -88,6 +90,44 @@ class FileCrawler(object):
     def print_banner(self):
         """ Displays ASCII art of the highest caliber.  """
         Color.pl(Configuration.get_banner())
+
+    @staticmethod
+    def load_tika():
+        from .libs.process import Process
+        import logging
+
+        if not Configuration.ocr_enabled:
+            return
+
+        try:
+            tika_proc = Process.find_process('tika-server.jar')
+            if tika_proc is not None:
+                if Configuration.verbose >= 1:
+                    Color.pl('{?} Killing tika server with PID: {G}%s{W}' % tika_proc[0])
+                Process.kill(pid=tika_proc[0])
+
+            if Configuration.verbose >= 1:
+                Color.pl('{?} Loading tika: {GR}')
+
+            file = os.path.join(Configuration.lib_path, 'bin', 'loader.pdf')
+
+            import tika
+            from tika import parser
+            tika.TikaClientOnly = True
+
+            #Change log level
+            if Configuration.verbose == 0:
+                log = logging.getLogger('tika.tika')
+                log.setLevel(logging.ERROR)
+
+            headers = {
+                "X-Tika-OCRLanguage": f"eng+{Configuration.ocr_language}",
+                "X-Tika-PDFocrStrategy": Configuration.ocr_pdf_strategy
+            }
+            parser.from_file(file, headers=headers)
+            Color.pl('{+} Tika lib loaded {W}')
+        finally:
+            Color.p('{W}')
 
     # Used to supress libmagic error 'lhs/off overflow 4294967295 0'
     # https://bugs.astron.com/view.php?id=426
