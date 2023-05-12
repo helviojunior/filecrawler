@@ -28,6 +28,7 @@ RUN apt update \
       default-jdk \
       libmagic-dev \
       curl \
+      wget \
       gpg \
       vim \
   && apt clean all \
