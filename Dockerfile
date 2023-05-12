@@ -46,16 +46,18 @@ RUN echo FileCrawler > /etc/hostname
 
 WORKDIR /tmp
 ENV GIT_SSL_NO_VERIFY="true"
-RUN cp /etc/init.d/elasticsearch init.sh
-RUN cat init.sh | sed 's|^DATA_DIR.*|DATA_DIR=/u01/es_data|' > /etc/init.d/elasticsearch
-RUN python3 -m pip install -U pip
-#RUN python3 -m pip install -U filecrawler
-RUN git clone https://github.com/helviojunior/filecrawler.git installer
-RUN python3 -m pip install -U installer/
-RUN python3 ./installer/scripts/config_elk.py
-RUN cp ./installer/scripts/config_elk.py /root/
-
-RUN mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/
+RUN cp /etc/init.d/elasticsearch init.sh && \
+    cat init.sh | sed 's|^DATA_DIR.*|DATA_DIR=/u01/es_data|' > /etc/init.d/elasticsearch && \
+    python3 -m pip install -U pip && \
+    git clone https://github.com/helviojunior/filecrawler.git installer && \
+    VER=$(curl -s "https://raw.githubusercontent.com/chrismattmann/tika-python/master/tika/tika.py" | grep 'TIKA_VERSION' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' || echo '2.6.0') && \
+    SERVER_HASH=$(curl -s "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar.sha1") && \
+    wget -nv -O "./installer/filecrawler/libs/bin/tika-server.jar" "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar" && \
+    echo "${SERVER_HASH} ./installer/filecrawler/libs/bin/tika-server.jar" | sha1sum -c - && \
+    python3 -m pip install -U installer/ && \
+    python3 ./installer/scripts/config_elk.py && \
+    cp ./installer/scripts/config_elk.py /root/ && \
+    mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/
 
 WORKDIR /u02/
 
