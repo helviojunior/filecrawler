@@ -98,7 +98,7 @@ class Configuration(object):
         # Overwrite config values with arguments (if defined)
         Configuration.load_from_arguments()
 
-        os.environ["TIKA_SERVER_JAR"] = os.path.join(Configuration.lib_path, 'tika-server.jar')
+        os.environ["TIKA_SERVER_JAR"] = os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')
 
 
     @staticmethod
