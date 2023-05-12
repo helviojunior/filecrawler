@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 # -*- coding: UTF-8 -*-
 import codecs
+import hashlib
 import io
+import shutil
 import tempfile
 
 from .libs.process import Process
@@ -109,11 +111,28 @@ class FileCrawler(object):
             if Configuration.verbose >= 1:
                 Color.pl('{?} Loading tika: {GR}')
 
+            p = tempfile.gettempdir()
+            os.environ["TIKA_PATH"] = p
+            os.environ["TIKA_LOG_PATH"] = p
+            os.environ["TIKA_SERVER_JAR"] = 'tika-server.jar'
+            jar_file = os.path.join(p, 'tika-server.jar')
+            shutil.copytree(
+                os.path.join(Configuration.lib_path, 'bin'),
+                p,
+                dirs_exist_ok=True)
+
+            # create md5 hash file
+            m = hashlib.md5()
+            with open(jar_file, 'rb') as f:
+                binContents = f.read()
+                m.update(binContents)
+                with open(jar_file + ".md5", "w") as em:
+                    em.write(m.hexdigest())
+
             file = os.path.join(Configuration.lib_path, 'bin', 'loader.pdf')
 
             import tika
             from tika import parser
-            tika.TikaClientOnly = True
 
             #Change log level
             if Configuration.verbose == 0:
