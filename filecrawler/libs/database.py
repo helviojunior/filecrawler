@@ -96,7 +96,7 @@ class Database(object):
         return self.insert_update_one_exclude(conn, table_name, [], **kwargs)
 
     @connect
-    def insert_update_one_exclude(self, conn: Connection, table_name: str, exclude_on_update: list = [], **kwargs):
+    def insert_update_one_exclude(self, conn: Connection, table_name: str, exclude_on_update: list = [], **kwargs) -> dict:
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
         sql = "INSERT OR IGNORE INTO {} ({}) VALUES ({})" \
@@ -123,7 +123,7 @@ class Database(object):
             status['updated'] = c.rowcount
 
         conn.commit()
-
+        return status
 
     @connect
     def select(self, conn: Connection, table_name, **kwargs):
