@@ -91,9 +91,8 @@ class Database(object):
         conn.execute(sql, values)
         conn.commit()
 
-    @connect
-    def insert_update_one(self, conn: Connection, table_name: str, **kwargs):
-        return self.insert_update_one_exclude(conn, table_name, [], **kwargs)
+    def insert_update_one(self, table_name: str, **kwargs):
+        return self.insert_update_one_exclude(table_name, [], **kwargs)
 
     @connect
     def insert_update_one_exclude(self, conn: Connection, table_name: str, exclude_on_update: list = [], **kwargs) -> dict:
@@ -292,7 +291,7 @@ class Database(object):
         cursor.execute("PRAGMA temp_store = MEMORY")
         # cursor.execute("PRAGMA page_size = 4096")
         # cursor.execute("PRAGMA cache_size = 10000")
-        cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
+        #cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
         cursor.execute("PRAGMA synchronous=OFF")
         cursor.execute("PRAGMA journal_mode=MEMORY")
         # cursor.execute("PRAGMA foreign_keys=ON")
