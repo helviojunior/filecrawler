@@ -160,7 +160,6 @@ class Database(object):
             conn.commit()
         return inserted, updated
 
-
     @connect
     def select(self, conn, table_name, **kwargs):
 
@@ -377,83 +376,4 @@ class Database(object):
         return ''.join(k for k in input_string if k.isalnum() or k in '_-')
 
     def create_db(self):
-
-        conn = self.connect_to_db(check=False)
-
-        # definindo um cursor
-        cursor = conn.cursor()
-
-        # criando a tabela (schema)
-        cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS [index] (
-                        index_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        name TEXT NOT NULL,
-                        create_date datetime NOT NULL DEFAULT (datetime('now','localtime')),
-                        UNIQUE(name)
-                    );
-                """)
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS [file_index] (
-                file_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                index_id INTEGER NOT NULL,
-                fingerprint TEXT NOT NULL,
-                filename TEXT NOT NULL,
-                file_size INTEGER,
-                extension TEXT NOT NULL,
-                mime_type TEXT NOT NULL,
-                created datetime NOT NULL,
-                last_accessed datetime NOT NULL,
-                last_modified datetime NOT NULL,
-                indexing_date datetime NOT NULL,
-                path_real TEXT NOT NULL,
-                path_virtual TEXT NOT NULL,
-                data TEXT NULL,
-                integrated INTEGER NOT NULL DEFAULT (0),
-                FOREIGN KEY(index_id) REFERENCES [index](index_id),
-                UNIQUE(index_id, fingerprint)
-            );
-        """)
-        conn.commit()
-
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS [alert] (
-                alert_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                index_id INTEGER NOT NULL,
-                file_fingerprint TEXT NOT NULL,
-                fingerprint TEXT NOT NULL,
-                data TEXT NULL,
-                sent INTEGER NOT NULL DEFAULT (0),
-                FOREIGN KEY(index_id) REFERENCES [index](index_id),
-                UNIQUE(index_id, fingerprint)
-            );
-        """)
-        conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_file_index_fingerprint
-                    ON [file_index] (fingerprint);
-                """)
-
-        conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_file_index_file_id
-                    ON [file_index] (file_id);
-                """)
-
-        conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_file_index_integrated
-                    ON [file_index] (integrated);
-                """)
-
-        conn.commit()
-
-        cursor.execute("""
-                    CREATE INDEX idx_file_index_integrated_indexing_date
-                    ON [file_index] (integrated, indexing_date);
-                """)
-
-        conn.commit()
+        raise Exception('Method "create_db" is not yet implemented.')
