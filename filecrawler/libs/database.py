@@ -292,7 +292,7 @@ class Database(object):
         cursor.execute("PRAGMA temp_store = MEMORY")
         # cursor.execute("PRAGMA page_size = 4096")
         # cursor.execute("PRAGMA cache_size = 10000")
-        #cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
+        cursor.execute("PRAGMA locking_mode=EXCLUSIVE")
         cursor.execute("PRAGMA synchronous=OFF")
         cursor.execute("PRAGMA journal_mode=MEMORY")
         # cursor.execute("PRAGMA foreign_keys=ON")
