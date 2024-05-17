@@ -388,8 +388,15 @@ class Configuration(object):
     def create_config():
         sample_config = Configuration.get_config_sample()
 
+        class CustomDumper(yaml.Dumper):
+            def represent_data(self, data):
+                if isinstance(data, str) and data.isdigit():
+                    return self.represent_scalar('tag:yaml.org,2002:str', data, style="'")
+
+                return super(CustomDumper, self).represent_data(data)
+
         with open(Configuration.config_file, 'w') as f:
-            yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False)
+            yaml.dump(sample_config, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
 
         Logger.pl('{+} {W}Config file created at {O}%s{W}\n' % Configuration.config_file)
 

@@ -31,6 +31,7 @@ RUN apt update \
       wget \
       gpg \
       vim \
+      jq \
   && apt clean all \
   && apt autoremove
 
@@ -69,6 +70,7 @@ python3 /root/config_elk.py \n \
 chown -R elasticsearch:elasticsearch /u01/ \n \
 ln -s /u01/ /root/.filecrawler  \n \
 /etc/init.d/elasticsearch start \n \
+curl -s 'http://localhost:9200/_cat/indices/.kib*?v=true&s=index' | grep -oE '\.kibana([^ ]+)' | xargs -I {}  curl -s -XDELETE \"http://localhost:9200/{}\" \n \
 /etc/init.d/kibana start \n \
 /bin/bash \n \
 /etc/init.d/elasticsearch stop \n \
@@ -89,6 +91,7 @@ ENV LS_HEAP_SIZE="125m"
 ENV KBN_PATH_CONF=/opt/kibana/config/
 ENV LOGSTASH_START=0
 ENV MAX_MAP_COUNT=262144
+ENV NODE_ENV="production"
 ENTRYPOINT ["/root/start.sh"]
 
 #https://phoenixnap.com/kb/elk-stack-docker

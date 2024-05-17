@@ -112,7 +112,7 @@ class Arguments(object):
                            default=5,
                            metavar='[tasks]',
                            type=int,
-                           help=Color.s('number of connects in parallel (per host, default: {G}16{W})'))
+                           help=Color.s('number of connects in parallel (per host, default: {G}5{W})'))
 
         flags.add_argument('--create-config',
                            action='store_true',

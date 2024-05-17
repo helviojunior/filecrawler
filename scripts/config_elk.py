@@ -3,16 +3,25 @@
 
 import yaml
 
+
+class CustomDumper(yaml.Dumper):
+    def represent_data(self, data):
+        if isinstance(data, str) and data.isdigit():
+            return self.represent_scalar('tag:yaml.org,2002:str', data, style="'")
+
+        return super(CustomDumper, self).represent_data(data)
+
+
 with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
     data = dict(yaml.load(f, Loader=yaml.FullLoader))
     '''
-    network.host: 127.0.0.1
-    http.host: 127.0.0.1
+    network.host: localhost
+    http.host: localhost
     http.port: 9200
     '''
     data.update({
-        'network.host': '0.0.0.0',
-        'network.publish_host': '127.0.0.1',
+        'network.host': 'localhost',
+        'network.publish_host': '0.0.0.0',
         'http.host': '0.0.0.0',
         'http.port': 9200,
         'cluster.name': 'filecrawler',
@@ -25,15 +34,21 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
     })
 
 with open('/etc/elasticsearch/elasticsearch.yml', 'w') as f:
-    yaml.dump(data, f, sort_keys=False, default_flow_style=False)
+    yaml.dump(data, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
 
 with open('/opt/kibana/config/kibana.yml', 'r') as f:
     kibana = dict(yaml.load(f, Loader=yaml.FullLoader))
     kibana.update({
         'server.host': '0.0.0.0',
+        'xpack.reporting.kibanaServer.hostname': 'localhost',
+        'server.maxPayload': 1048576,
+        'server.name': 'FileCrawler',
+        'elasticsearch.hosts': ["http://localhost:9200"],
+        'i18n.locale': 'en',
         'server.port': 80,
     })
 
+
 with open('/opt/kibana/config/kibana.yml', 'w') as f:
-    yaml.dump(kibana, f, sort_keys=False, default_flow_style=False)
+    yaml.dump(kibana, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
 
