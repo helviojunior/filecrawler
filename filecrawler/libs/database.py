@@ -66,7 +66,7 @@ class Database(object):
 
     def __enter__(self):
         # make a database connection and return it
-        return self.db_connection
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # make sure the dbconnection gets closed
@@ -76,7 +76,7 @@ class Database(object):
     def insert_one(self, conn: Connection, table_name, **kwargs):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
-        sql = "INSERT INTO {} ({}) VALUES ({})" \
+        sql = "INSERT INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
         conn.execute(sql, values)
         conn.commit()
@@ -85,7 +85,7 @@ class Database(object):
     def insert_ignore_one(self, conn: Connection, table_name, **kwargs):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
-        sql = "INSERT OR IGNORE INTO {} ({}) VALUES ({})" \
+        sql = "INSERT OR IGNORE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
         conn.execute(sql, values)
         conn.commit()
@@ -94,7 +94,7 @@ class Database(object):
     def insert_replace_one(self, conn: Connection, table_name, **kwargs):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
-        sql = "INSERT OR REPLACE INTO {} ({}) VALUES ({})" \
+        sql = "INSERT OR REPLACE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
         conn.execute(sql, values)
         conn.commit()
@@ -106,7 +106,7 @@ class Database(object):
     def insert_update_one_exclude(self, conn: Connection, table_name: str, exclude_on_update: list = [], **kwargs) -> dict:
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
-        sql = "INSERT OR IGNORE INTO {} ({}) VALUES ({})" \
+        sql = "INSERT OR IGNORE INTO [{}] ({}) VALUES ({})" \
             .format(table_name, ','.join(columns), ', '.join(['?'] * len(columns)))
         c = conn.execute(sql, values)
 
@@ -120,7 +120,7 @@ class Database(object):
             args = {k: v for k, v in kwargs.items() if k not in exclude_on_update}
             (u_columns, u_values) = self.parse_args(args)
 
-            sql = f"UPDATE {table_name} SET "
+            sql = f"UPDATE [{table_name}] SET "
             sql += "{}".format(', '.join([f'{col} = ?' for col in u_columns]))
             if len(f_columns) > 0:
                 sql += " WHERE {}".format(f' and '.join([f'{col} = ?' for col in f_columns]))
@@ -140,7 +140,7 @@ class Database(object):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
 
-        sql = f"SELECT * FROM {table_name}"
+        sql = f"SELECT * FROM [{table_name}]"
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
 
@@ -173,7 +173,7 @@ class Database(object):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
 
-        sql = f"SELECT count(*) FROM {table_name}"
+        sql = f"SELECT count(*) FROM [{table_name}]"
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
         cursor = conn.execute(sql, values)
@@ -191,7 +191,7 @@ class Database(object):
         table_name = self.scrub(table_name)
         (columns, values) = self.parse_args(kwargs)
 
-        sql = f"DELETE FROM {table_name}"
+        sql = f"DELETE FROM [{table_name}]"
         if len(columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in columns]))
         conn.execute(sql, values)
@@ -207,7 +207,7 @@ class Database(object):
         (u_columns, u_values) = self.parse_args(kwargs)
 
         sql = f"UPDATE {table_name} SET "
-        sql += "{}".format(', '.join([f'{col} = ?' for col in u_columns]))
+        sql += "[{}]".format(', '.join([f'{col} = ?' for col in u_columns]))
         if len(f_columns) > 0:
             sql += " WHERE {}".format(f' {operator} '.join([f'{col} = ?' for col in f_columns]))
         conn.execute(sql, tuple(u_values + f_values, ))
