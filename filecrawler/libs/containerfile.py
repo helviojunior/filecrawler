@@ -20,6 +20,7 @@ class ContainerFile(object):
         dict(name='bz2', extensions=['bz2'], mime=['application/x-bzip2']),
         dict(name='gz', extensions=['gz'], mime=['application/gzip']),
         dict(name='7z', extensions=['7z'], mime=['application/x-7z-compressed']),
+        dict(name='eml', extensions=['eml'], mime=['message/rfc822']),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
         dict(name='jar', extensions=['jar'], mime=[])
@@ -88,6 +89,50 @@ class ContainerFile(object):
             return Path(self._temp_path)
 
         return None
+
+    def extract_eml(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
+        self.create_folder()
+
+        try:
+            import glob
+            import email
+            from email import policy
+
+            with open(str(self._file.path), "r") as f:
+                msg = email.message_from_file(f, policy=policy.default)
+                for attachment in msg.iter_attachments():
+                    try:
+                        output_filename = attachment.get_filename()
+                    except AttributeError:
+                        print("Got string instead of filename for %s. Skipping." % f.name)
+                        continue
+
+                    msg_data = None
+                    try:
+                        msg_data = attachment.get_payload(decode=True)
+                    except TypeError:
+                        print("Couldn't get payload for %s" % output_filename)
+                        continue
+
+                    # If no attachments are found, skip this file
+                    if msg_data is not None:
+                        if output_filename is None:
+                            output_filename = Tools.random_generator(size=10) + Tools.guess_extensions(msg_data)
+
+                        with open(os.path.join(str(self._temp_path), output_filename), "wb") as of:
+                            try:
+                                of.write(msg_data)
+                            except TypeError:
+                                print("Couldn't get payload for %s" % output_filename)
+
+            return True
+        except Exception as e:
+            #Tools.print_error(e)
+            return False
 
     def extract_7z(self) -> bool:
         from filecrawler.config import Configuration

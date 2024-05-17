@@ -192,6 +192,32 @@ class Tools:
         return bool(text)
 
     @staticmethod
+    def guess_extension(file_path: str) -> str:
+        try:
+            import mimetypes
+            mimetypes.init()
+            ext = mimetypes.guess_extension(Tools.get_mime(file_path), strict=True)
+            if ext is None:
+                return ".bin"
+            return str(ext)
+        except Exception as e:
+            #Tools.print_error(e)
+            return ".bin"
+
+    @staticmethod
+    def guess_extensions(data: [str, bytes]) -> str:
+        try:
+            import mimetypes
+            mimetypes.init()
+            ext = mimetypes.guess_extension(Tools.get_mimes(data), strict=True)
+            if ext is None:
+                return ".bin"
+            return str(ext)
+        except Exception as e:
+            #Tools.print_error(e)
+            return ".bin"
+
+    @staticmethod
     def get_mime(file_path: str) -> str:
         return Tools.get_mimes(open(file_path, "rb").read(2048))
 
@@ -217,7 +243,6 @@ class Tools:
         except Exception as e:
             Tools.print_error(e)
             return 'application/octet-stream'
-
 
     @staticmethod
     def json_serial(obj):
