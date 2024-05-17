@@ -64,6 +64,14 @@ class Database(object):
         else:
             self.connect_to_db()
 
+    def __enter__(self):
+        # make a database connection and return it
+        return self.db_connection
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # make sure the dbconnection gets closed
+        self.db_connection.close()
+
     @connect
     def insert_one(self, conn: Connection, table_name, **kwargs):
         table_name = self.scrub(table_name)
