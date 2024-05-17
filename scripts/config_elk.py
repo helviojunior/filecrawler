@@ -29,6 +29,7 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
         'path.data': '/u01/es_data/',
         'cluster.routing.allocation.disk.watermark.high.max_headroom': '2gb',
         'cluster.routing.allocation.disk.watermark.flood_stage.max_headroom': '2gb',
+        'search.max_async_search_response_size': '100mb',
         'xpack.security.enabled': False,
         'xpack.security.enrollment.enabled': False,
         'xpack.security.http.ssl': {'enabled': False},
@@ -43,7 +44,8 @@ with open('/opt/kibana/config/kibana.yml', 'r') as f:
     kibana.update({
         'server.host': '0.0.0.0',
         'xpack.reporting.kibanaServer.hostname': 'localhost',
-        'server.maxPayload': 1048576,
+        'server.maxPayload': 104857600,
+        'savedObjects.maxImportPayloadBytes': 104857600,
         'server.name': 'FileCrawler',
         'elasticsearch.hosts': ["http://localhost:9200"],
         'i18n.locale': 'en',
