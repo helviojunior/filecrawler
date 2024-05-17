@@ -27,6 +27,8 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
         'cluster.name': 'filecrawler',
         'node.name': 'elk',
         'path.data': '/u01/es_data/',
+        'cluster.routing.allocation.disk.watermark.high.max_headroom': '2gb',
+        'cluster.routing.allocation.disk.watermark.flood_stage.max_headroom': '2gb',
         'xpack.security.enabled': False,
         'xpack.security.enrollment.enabled': False,
         'xpack.security.http.ssl': {'enabled': False},
