@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Optional
 from filecrawler.libs.file import File
 from filecrawler.libs.process import Process
-from filecrawler.util.tools import Tools
 import shutil
 
 
@@ -102,11 +101,12 @@ class ContainerFile(object):
             import email
             from email import policy
             from email.parser import HeaderParser
+            from filecrawler.util.tools import Tools
 
             with open(str(self._file.path), "r") as f:
                 msg = email.message_from_file(f, policy=policy.default)
-                msg_data = None
                 msg_epoch = Tools.to_epoch(Tools.get_email_date(msg))
+                msg_data = None
 
                 full_name = os.path.join(str(self._temp_path), f"header.txt")
                 try:

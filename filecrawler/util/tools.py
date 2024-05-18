@@ -189,11 +189,11 @@ class Tools:
 
     @staticmethod
     def to_datetime(epoch: [int, float]) -> datetime.datetime:
-        return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=int(epoch))
+        return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=epoch)
 
     @staticmethod
-    def to_epoch(date: datetime.datetime) -> int:
-        return (date - datetime.datetime(1970, 1, 1, 0, 0, 0)).seconds
+    def to_epoch(date: datetime.datetime) -> float:
+        return (date - datetime.datetime(1970, 1, 1, 0, 0, 0)).total_seconds()
 
     @staticmethod
     def to_boolean(text: [str, bool]) -> bool:
