@@ -28,6 +28,7 @@ FileCrawler officially supports Python 3.8+.
 * [X] Compressed files (zip, tar, gzip etc)
 * [X] SQLite3 database
 * [X] Containers (docker saved at tar.gz)
+* [X] E-mail (*.eml files) header, body and attachments
 
 ### Indexers:
 * [x] Elasticsearch
