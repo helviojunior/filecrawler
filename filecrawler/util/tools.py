@@ -6,7 +6,11 @@ import os
 import platform
 import string, random, sys, re
 import subprocess
+import time
+from email.message import EmailMessage
+
 import unicodedata
+import email
 from tabulate import tabulate
 from filecrawler.libs.color import Color
 
@@ -185,11 +189,22 @@ class Tools:
 
     @staticmethod
     def to_datetime(epoch: [int, float]) -> datetime.datetime:
-        return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=epoch)
+        return datetime.datetime(1970, 1, 1, 0, 0, 0) + datetime.timedelta(seconds=int(epoch))
+
+    @staticmethod
+    def to_epoch(date: datetime.datetime) -> int:
+        return (date - datetime.datetime(1970, 1, 1, 0, 0, 0)).seconds
 
     @staticmethod
     def to_boolean(text: [str, bool]) -> bool:
         return bool(text)
+
+    @staticmethod
+    def get_email_date(msg: EmailMessage) -> datetime.datetime:
+        try:
+            return Tools.to_datetime(time.mktime(email.utils.parsedate(msg['date'])))
+        except:
+            return datetime.datetime.now()
 
     @staticmethod
     def guess_extension(file_path: str) -> str:

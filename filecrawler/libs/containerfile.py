@@ -101,37 +101,100 @@ class ContainerFile(object):
             import glob
             import email
             from email import policy
+            from email.parser import HeaderParser
 
             with open(str(self._file.path), "r") as f:
                 msg = email.message_from_file(f, policy=policy.default)
-                for attachment in msg.iter_attachments():
-                    try:
-                        output_filename = attachment.get_filename()
-                    except AttributeError:
-                        print("Got string instead of filename for %s. Skipping." % f.name)
-                        continue
+                msg_data = None
+                msg_epoch = Tools.to_epoch(Tools.get_email_date(msg))
 
-                    msg_data = None
-                    try:
-                        msg_data = attachment.get_payload(decode=True)
-                    except TypeError:
-                        print("Couldn't get payload for %s" % output_filename)
-                        continue
+                full_name = os.path.join(str(self._temp_path), f"header.txt")
+                try:
+                    parser = HeaderParser()
+                    with open(full_name, "wb") as of:
+                        try:
+                            of.write(f"## E-mail: {str(self._file.path)}\n".encode("UTF-8"))
+                            of.write(f"## Header\n\n".encode("UTF-8"))
+                            of.write(parser.parsestr(msg.as_string(), headersonly=True).as_string().encode("UTF-8"))
+                        except:
+                            pass
+                except:
+                    pass
 
-                    # If no attachments are found, skip this file
-                    if msg_data is not None:
-                        if output_filename is None:
-                            output_filename = Tools.random_generator(size=10) + Tools.guess_extensions(msg_data)
+                # Try to update file time from e-mail time
+                try:
+                    os.utime(full_name, (msg_epoch, msg_epoch))
+                except:
+                    pass
 
-                        with open(os.path.join(str(self._temp_path), output_filename), "wb") as of:
+                if msg.is_multipart():
+                    for t, ext in [('html', 'html'), ('plain', 'txt')]:
+                        # Use txt instead of html, because html can be in exclusion list
+                        full_name = os.path.join(str(self._temp_path), f"body_{ext}.txt")
+                        try:
+                            b_data = msg.get_body((t,))
+                            if b_data is not None:
+                                b_data = b_data.get_payload(decode=True)
+                            if b_data is not None:
+                                with open(full_name, "wb") as of:
+                                    of.write(b_data)
+
+                                # Try to update file time from e-mail time
+                                try:
+                                    os.utime(full_name, (msg_epoch, msg_epoch))
+                                except:
+                                    pass
+                        except Exception as e1:
+                            #Tools.print_error(e1)
+                            pass
+
+                    for attachment in msg.iter_attachments():
+                        msg_data = None
+                        try:
+                            output_filename = attachment.get_filename()
+                        except AttributeError:
+                            print("Got string instead of filename for %s. Skipping." % f.name)
+                            continue
+
+                        msg_data = None
+                        try:
+                            msg_data = attachment.get_payload(decode=True)
+                        except TypeError:
+                            print("Couldn't get payload for %s" % output_filename)
+                            continue
+
+                        # If no attachments are found, skip this file
+                        if msg_data is not None:
+                            if output_filename is None:
+                                output_filename = Tools.random_generator(size=10) + Tools.guess_extensions(msg_data)
+
+                            full_name = os.path.join(str(self._temp_path), output_filename)
+
+                            with open(full_name, "wb") as of:
+                                try:
+                                    of.write(msg_data)
+                                except TypeError:
+                                    print("Couldn't get payload for %s" % output_filename)
+
+                            # Try to update file time from e-mail time
                             try:
-                                of.write(msg_data)
-                            except TypeError:
-                                print("Couldn't get payload for %s" % output_filename)
+                                os.utime(full_name, (msg_epoch, msg_epoch))
+                            except:
+                                pass
+
+                # not multipart - i.e. plain text, no attachments, keeping fingers crossed
+                else:
+                    txt_body = msg.get_payload(decode=True)
+                    full_name = os.path.join(str(self._temp_path), 'body.txt')
+                    with open(full_name, "wb") as of:
+                        try:
+                            of.write(txt_body)
+                        except:
+                            pass
 
             return True
         except Exception as e:
-            #Tools.print_error(e)
+            Tools.print_error(e)
             return False
 
     def extract_7z(self) -> bool:

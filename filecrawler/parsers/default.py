@@ -5,7 +5,7 @@ from filecrawler.parserbase import ParserBase
 class DefaultParser(ParserBase):
 
     def __init__(self):
-        super().__init__('Default', 'Parser for PDF files')
+        super().__init__('Default', 'Default parser')
 
     def parse(self, file: File) -> dict:
         data = {'content': self.get_readable_data(file)}
