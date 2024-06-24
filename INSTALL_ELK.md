@@ -86,6 +86,13 @@ Ajuste com em torno de 80% da memória da máquina. Edite o arquivo /etc/elastic
 -Xmx1g
 ```
 
+## Ajuste o tamanho de retorno
+
+Execute o comando abaixo
+
+```bash
+curl -X PUT "http://localhost:9200/_cluster/settings" -H "Content-Type: application/json" -d "{\"persistent\": { \"search.max_async_search_response_size\": \"100mb\"}}"
+```
 
 ### Habilite o serviço do ELK
 ```
