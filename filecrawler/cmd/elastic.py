@@ -100,6 +100,7 @@ class Elastic(CrawlerBase):
                         'has_credential': {'type': 'boolean'},
                         'parser': {'type': 'keyword'},
                         'object_content': {'type': 'text'},
+                        'info': {'type': 'text'},
                         'credentials': {'type': 'flattened'},
                     }
                 }
@@ -122,6 +123,7 @@ class Elastic(CrawlerBase):
                     'fingerprint': {'type': 'keyword'},
                     'match': {'type': 'keyword'},
                     'content': {'type': 'text'},
+                    'info': {'type': 'text'},
                     'filtered_file': {'type': 'text'},
                     'rule': {'type': 'keyword'},
                     'username': {'type': 'keyword'},

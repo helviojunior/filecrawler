@@ -27,6 +27,7 @@ from filecrawler.parserbase import ParserBase
 from filecrawler.libs.color import Color
 from filecrawler.libs.crawlerdb import CrawlerDB
 from filecrawler.libs.logger import Logger
+from filecrawler.parsers.intelxinfo import IntelXInfo
 from filecrawler.util.tools import Tools
 
 
@@ -371,8 +372,10 @@ class CrawlerBase(object):
             if os.path.isfile(os.path.join(here, name))
         ]
 
+        info = IntelXInfo(here)
+
         for f in files:
-            yield File(base_path, f, container_path)
+            yield File(base_path, f, container_path, info=info.get_info(f))
 
         if os.path.isdir(os.path.join(here, '.git')) and Configuration.git_support:
             yield CPath(base_path, Path(os.path.join(here, '.git')).resolve(), container_path)

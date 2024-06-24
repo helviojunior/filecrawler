@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Optional
 
 from filecrawler.libs.cpath import CPath
+from filecrawler.parsers.intelxinfo import IntelXInfo
 from filecrawler.util.tools import Tools
 
 
@@ -17,16 +18,30 @@ class File(CPath):
     _mime_type = None
     _size = 0
     _credentials = []
+    _info = None
 
-    def __init__(self, base_path: [str, Path],  file_path: [str, Path], container_path: CPath = None):
+    def __init__(self,
+                 base_path: [str, Path],
+                 file_path: [str, Path],
+                 container_path: CPath = None,
+                 info: str = None):
         super().__init__(
             base_path=base_path,
             path=file_path,
             container_path=container_path
         )
+        self._info = str(info) if info is not None else None
 
         if not self._path.is_file():
             raise FileNotFoundError(f'Path is not a file instance: {self._path}')
+
+        if isinstance(info, IntelXInfo.FileInfo):
+            ep = Tools.to_epoch(info.date)
+            # Try to update file time from information received
+            try:
+                os.utime(str(file_path), (ep, ep))
+            except:
+                pass
 
         self._stats = self._path.stat()
 
@@ -98,6 +113,7 @@ class File(CPath):
             indexing_date=datetime.datetime.utcnow(),
             path_real=self._path_real,
             path_virtual=self._path_virtual,
+            info=self._info if self._info is not None and isinstance(self._info, str) else "",
         )
 
     def __str__(self):

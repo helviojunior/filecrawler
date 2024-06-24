@@ -51,6 +51,8 @@ class Tools:
             return True
         elif s == "_":
             return True
+        elif s == " ":
+            return True
         else:
             return False
 
