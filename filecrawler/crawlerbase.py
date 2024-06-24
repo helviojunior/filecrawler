@@ -632,6 +632,19 @@ class CrawlerBase(object):
 
         #insert_or_get_alert
         for k, c in credentials.items():
+            slice = Slice(
+                data['path_virtual'],
+                data['fingerprint'],
+                data.get('content', ''),
+                dict(credentials={k: {'findings': [
+                    f
+                    for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
+                    if f['fingerprint'] == k
+                ]}})
+            )
+            if slice.text != '':
+                data.update(dict(filtered_content=slice.text))
+
             b64_data = base64.b64encode(json.dumps(c, default=Tools.json_serial).encode("utf-8"))
             if isinstance(b64_data, bytes):
                 b64_data = b64_data.decode("utf-8")
@@ -651,6 +664,7 @@ class CrawlerBase(object):
         return {
                     f['fingerprint']: dict(
                         match=f['match'],
+                        created=data['created'],
                         indexing_date=data['indexing_date'],
                         rule=fl.get('name', ''),
                         filtered_file=data.get('filtered_content', ''),

@@ -136,6 +136,8 @@ class RuleBase(object):
             except Exception as e:
                 from filecrawler.config import Configuration
                 Color.pl('{!} {R}Error loading rule {O}%s{W}' % f'{iclass.__module__}.{iclass.__qualname__}')
+                if Configuration.verbose >= 3:
+                    Tools.print_error(e)
                 if not Configuration.continue_on_error:
                     raise e
 

@@ -19,6 +19,7 @@ class File(CPath):
     _size = 0
     _credentials = []
     _info = None
+    _overwrite_date = None
 
     def __init__(self,
                  base_path: [str, Path],
@@ -36,14 +37,16 @@ class File(CPath):
             raise FileNotFoundError(f'Path is not a file instance: {self._path}')
 
         if isinstance(info, IntelXInfo.FileInfo):
-            ep = Tools.to_epoch(info.date)
+            self._overwrite_date = Tools.to_epoch(info.date)
             # Try to update file time from information received
             try:
-                os.utime(str(file_path), (ep, ep))
+                os.utime(str(file_path), (self._overwrite_date, self._overwrite_date))
             except:
                 pass
 
         self._stats = self._path.stat()
+        if self._overwrite_date is None:
+            self._overwrite_date = self._stats.st_ctime
 
     @property
     def fingerprint(self):
@@ -107,7 +110,7 @@ class File(CPath):
             extension=self.extension,
             mime_type=self.mime,
             file_size=self._stats.st_size,
-            created=Tools.to_datetime(self._stats.st_ctime),
+            created=Tools.to_datetime(self._overwrite_date),
             last_accessed=Tools.to_datetime(self._stats.st_atime),
             last_modified=Tools.to_datetime(self._stats.st_mtime),
             indexing_date=datetime.datetime.utcnow(),

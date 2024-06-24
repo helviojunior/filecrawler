@@ -120,6 +120,7 @@ class Elastic(CrawlerBase):
             'mappings': {
                 'properties': {
                     'indexing_date': {'type': 'date'},
+                    'created': {'type': 'date'},
                     'fingerprint': {'type': 'keyword'},
                     'match': {'type': 'keyword'},
                     'content': {'type': 'text'},
@@ -128,6 +129,7 @@ class Elastic(CrawlerBase):
                     'rule': {'type': 'keyword'},
                     'username': {'type': 'keyword'},
                     'password': {'type': 'keyword'},
+                    'domain': {'type': 'keyword'},
                     'aws_access_key': {'type': 'keyword'},
                     'aws_access_secret': {'type': 'keyword'},
                     'aws_region': {'type': 'keyword'},

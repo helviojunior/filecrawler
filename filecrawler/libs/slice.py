@@ -20,6 +20,8 @@ class Slice(object):
             return
 
         findings = self._get_findings(credentials.get('credentials', {}))
+        if len(findings) == 0:
+            return
 
         #content = Slice.escape_ansi(content.replace('\r', ''))
         content = content.replace('\r', '')
@@ -37,6 +39,8 @@ class Slice(object):
                 if f in line
             )
         ]
+        if len(highlight_filter) == 0:
+            return
 
         self._line_filter = []
 
