@@ -77,7 +77,8 @@ class Elastic(CrawlerBase):
         if not es.indices.exists(index=Configuration.index_name):
             request_body = {
                 "settings": {
-                    "number_of_replicas": 1
+                    "number_of_replicas": 1,
+                    "index": {"highlight.max_analyzed_offset": 10000000}
                 },
 
                 'mappings': {
@@ -111,7 +112,8 @@ class Elastic(CrawlerBase):
 
         request_body = {
             "settings": {
-                "number_of_replicas": 1
+                "number_of_replicas": 1,
+                "index": {"highlight.max_analyzed_offset": 10000000}
             },
 
             'mappings': {
