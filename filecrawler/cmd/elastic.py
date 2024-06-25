@@ -182,6 +182,15 @@ class Elastic(CrawlerBase):
                             })
                     except:
                         pass
+
+                    try:
+                        # Filter just the first 50 lines
+                        ff = f.get('filtered_file', None)
+                        if ff is not None:
+                            f['filtered_file'] = '\n'.join(ff.split('\n')[0:50])
+                    except:
+                        pass
+
                     res = es.index(index=Configuration.index_name + '_credentials', id=k, document=f)
                     if res is None or res.get('_shards', {}).get('successful', 0) == 0:
                         if not Configuration.continue_on_error:

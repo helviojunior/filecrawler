@@ -179,6 +179,10 @@ class CrawlerBase(object):
             # Insert/get index name
             self.index_id = db.insert_or_get_index(Configuration.index_name)
 
+            # Clear data of files
+            db.delete('alert', index_id=self.index_id)
+            db.select_raw(sql="update file_index set data='' where index_id = ?", args=[self.index_id])
+
         self.pre_run()
 
         with Worker(callback=self.file_callback, per_thread_callback=self.thread_start_callback,
@@ -605,7 +609,7 @@ class CrawlerBase(object):
                                   filter_data=dict(file_id=row['file_id']),
                                   **dict(
                                       integrated=integrated,
-                                      data=b64_data
+                                      data=b64_data if not integrated else ''
                                   )
                         )
                         break
