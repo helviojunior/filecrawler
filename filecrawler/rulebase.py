@@ -9,7 +9,7 @@ from pathlib import Path
 from re import Pattern
 from typing import Iterator, Optional, TypeVar
 
-
+from filecrawler._exceptions import FalsePositiveError
 from filecrawler.libs.rule import Rule
 from filecrawler.libs.color import Color
 from filecrawler.libs.logger import Logger
@@ -318,35 +318,42 @@ class RuleBase(object):
         if len(findings) == 0:
             return None
 
-        fp = self.run_regex(text, self._fp_regex, verbose)
-        if len(fp) > 0:
+        try:
+            fp = self.run_regex(text, self._fp_regex, verbose)
+            if len(fp) > 0:
+                findings = [
+                    f for f in findings
+                    if not any(
+                        1 for fp1 in fp
+                        if f in fp1
+                    )
+                ]
+
             findings = [
                 f for f in findings
-                if not any(
-                    1 for fp1 in fp
-                    if f in fp1
-                )
+                if len(self.run_regex(f, self._fp_regex, verbose)) == 0
             ]
 
-        findings = [
-            f for f in findings
-            if len(self.run_regex(f, self._fp_regex, verbose)) == 0
-        ]
+            if len(findings) == 0:
+                return None
 
-        if len(findings) == 0:
+            findings = [
+                p for f in findings
+                if (p := self._post_processor(text, f)) is not None
+            ]
+
+            return findings
+
+        except FalsePositiveError:
             return None
 
-        findings = [
-            self._post_processor(text, f) for f in findings
-        ]
-
-        return findings
-
-    def _post_processor(self, text: str, match: str) -> dict:
+    def _post_processor(self, text: str, match: str) -> Optional[dict]:
         data = dict(match=match, severity=self._severity)
         mh = match
         try:
             data.update(self.post_processor(text, match))
+        except FalsePositiveError as e:
+            return None
         except:
             pass
 

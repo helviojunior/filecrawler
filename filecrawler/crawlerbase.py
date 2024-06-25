@@ -562,11 +562,12 @@ class CrawlerBase(object):
                     if creds is not None:
                         data.update(creds)
 
-                        slice = Slice(data['path_virtual'], data['fingerprint'], data.get('content', ''), creds)
-                        if slice.text != '':
-                            data.update(dict(filtered_content=slice.text))
-                            if Configuration.store_leaks_evidences:
-                                slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
+                        #
+                        #slice = Slice(data['path_virtual'], data['fingerprint'], data.get('content', ''), creds)
+                        #if slice.text != '':
+                        #    data.update(dict(filtered_content=slice.text))
+                        #    if Configuration.store_leaks_evidences:
+                        #        slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
 
                         self.save_credential(db, file.path_virtual, data)
 
@@ -624,6 +625,12 @@ class CrawlerBase(object):
         if data is None or len(data) == 0:
             return
 
+        if Configuration.verbose >= 1:
+            Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
+
+        if not AlertBase.has_providers():
+            return
+
         credentials = self.get_credentials_data(data)
         if credentials is None or len(credentials) == 0:
             return
@@ -631,8 +638,6 @@ class CrawlerBase(object):
         if Configuration.verbose >= 2:
             Color.pl('{?} {GR}Credential found at file {O}%s{GR}\n%s{W}\n' % (
                 file_path, json.dumps(credentials, default=Tools.json_serial, indent=2)))
-        elif Configuration.verbose >= 1:
-            Color.pl('{?} {GR}Credential found at file {O}%s{GR}{W}' % file_path)
 
         #insert_or_get_alert
         for k, c in credentials.items():

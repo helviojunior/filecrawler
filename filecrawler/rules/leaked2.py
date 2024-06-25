@@ -8,9 +8,9 @@ from filecrawler.rulebase import RuleBase
 class Leaked1(RuleBase):
 
     def __init__(self):
-        super().__init__('leaked1', 'Leaked Credentials 1')
+        super().__init__('leaked2', 'Leaked Credentials 2')
 
-        self._regex = re.compile(r"(?i)(web|url)[: ]{1,3}([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n]{1,1024})\n[ \t]{0,5}(user|username|login|email)[ :]{1,3}([^\n]{1,1024})\n[ \t]{0,5}(pass|password|token|secret|senha|pwd)[ :]{1,3}([^\n]{1,1024})", flags=re.RegexFlag.MULTILINE)
+        self._regex = re.compile(r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:]{1,1024}):([^\n:]{1,1024}):([\S]{1,1024})")
         # (?![A-Za-z0-9:._-])
         self._keywords = ["://"]
         #self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha|pwd)([>]{0,1})@")
@@ -18,7 +18,9 @@ class Leaked1(RuleBase):
         ]
 
         self._tps = [
-            "URL: http://domain.com.br/login\nUSER: fake_user\nPASS: fake_pass"
+            "https://dominio.com.br/cadastro:meuemail@mydomain.com:@Pass123",
+            "https://dominio.com.br/cadastro:meuemail@mydomain.com:@Pass:123",
+            "https://dominio.com.br:meu.email@br.mydomain.com:123456"
         ]
 
         self._fps = [
@@ -27,15 +29,16 @@ class Leaked1(RuleBase):
     def post_processor(self, original_data: str, found: str) -> dict:
         from urllib.parse import urlparse
         from filecrawler.config import Configuration
+
         try:
             p = re.compile(
-                r"(?i)[a-zA-Z0-9_]{2,30}[: ]{1,3}([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n]{1,1024})\n[ \t]{0,5}[a-zA-Z0-9_]{2,30}[: ]{1,3}([^\n]{1,1024})\n[ \t]{0,5}[a-zA-Z0-9_]{2,30}[: ]{1,3}([^\n]{1,1024})", flags=re.RegexFlag.MULTILINE)
+                r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:]{1,1024}):([^:]{1,1024}):([\S]{1,1024})")
 
             severity = 100
 
             m = p.match(found.replace('\r', ''))
             if not m:
-                return {}
+                raise FalsePositiveError()
 
             domain = None
             url = m.group(1)
@@ -46,10 +49,10 @@ class Leaked1(RuleBase):
                 tmp = urlparse(url)
             except:
                 # invalid URL
-                return {}
+                raise FalsePositiveError()
 
             try:
-                username = unquote(username)
+                username = unquote(username).strip()
             except:
                 pass
 
@@ -57,6 +60,13 @@ class Leaked1(RuleBase):
                 password = unquote(password)
             except:
                 pass
+
+            if any([
+                True
+                for v in [" ", "//"]
+                if v in username
+            ]):
+                raise FalsePositiveError()
 
             if '@' in username:
                 pt = username.split('@', 2)
@@ -77,7 +87,7 @@ class Leaked1(RuleBase):
 
             entropy = self.entropy(password)
 
-            if url.strip() == '' or password.strip() == '':
+            if url.strip() == '' or username.strip() == '' or password.strip() == '':
                 return {}
 
             if password[0:1] == '$':

@@ -129,6 +129,7 @@ class Elastic(CrawlerBase):
                     'rule': {'type': 'keyword'},
                     'username': {'type': 'keyword'},
                     'password': {'type': 'keyword'},
+                    'url': {'type': 'keyword'},
                     'domain': {'type': 'keyword'},
                     'aws_access_key': {'type': 'keyword'},
                     'aws_access_secret': {'type': 'keyword'},
@@ -159,6 +160,9 @@ class Elastic(CrawlerBase):
             if Configuration.filename_as_id:
                 id = data['path_virtual']
 
+            creds = data.get('credentials', None)
+            data['credentials'] = None
+
             with(Elasticsearch(self.nodes, timeout=30, max_retries=10, retry_on_timeout=True)) as es:
                 res = es.index(index=Configuration.index_name, id=id, document=data)
                 if res is None or res.get('_shards', {}).get('successful', 0) == 0:
@@ -167,6 +171,8 @@ class Elastic(CrawlerBase):
 
                 #if res.get('result', '') != 'created':
                 #    Logger.pl(res)
+
+                data['credentials'] = creds
 
                 # Index only credentials
                 findings = CrawlerBase.get_credentials_data(data)

@@ -39,6 +39,11 @@ class Configuration(object):
     tasks_integrator = 2
     evidences_path = './evidences'
 
+    public_domains = [
+        "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
+        'bol.com'
+    ]
+
     indexed_chars = 1000000
     excludes = [
         '*/~*', '*/.idea/*', '*/.svn/*', '*/.pyenv/*',
@@ -49,6 +54,10 @@ class Configuration(object):
         '*/*.exe', '*/*.dll', '*/*.msi',
         '*/*.emf', '*/*.bdb', '*/*.vox', '*/*.bin', '*/*.dat', '*/*.pkl',
         '*/*.parquet', '*/*.parq', '*/*.rsc',
+    ]
+    exclude_domains = [
+        "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
+        'bol.com'
     ]
     json_support = False
     filename_as_id = False

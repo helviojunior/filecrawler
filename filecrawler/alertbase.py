@@ -136,6 +136,13 @@ class AlertBase(object):
         return AlertBase._alerters
 
     @staticmethod
+    def has_providers():
+        if AlertBase._alerters is None or len(AlertBase._alerters) == 0:
+            return False
+
+        return True
+
+    @staticmethod
     def alert(base_path: [str, Path], file_fingerprint: str, fingerprint: str, alert: dict):
 
         if base_path is None or file_fingerprint is None:

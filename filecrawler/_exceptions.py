@@ -21,3 +21,13 @@ class IntegrationError(Exception):
 
     def __str__(self) -> str:
         return str(self.message)
+
+
+class FalsePositiveError(Exception):
+    """Generic exception for the 'integration error' package.
+
+    For the 'errors' attribute, errors are ordered from
+    most recently raised (index=0) to least recently raised (index=N)
+    """
+    pass
+
