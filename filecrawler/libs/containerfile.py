@@ -254,6 +254,7 @@ class ContainerFile(object):
             return False
 
     def extract_gz(self) -> bool:
+        from filecrawler.util.tools import Tools
         from filecrawler.config import Configuration
         if not Configuration.extract_files:
             return False
