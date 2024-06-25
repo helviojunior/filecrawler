@@ -1,4 +1,4 @@
-__version__ = '0.1.10'
+__version__ = '0.1.11'
 __title__ = "FileCrawler"
 __description__ = "File Crawler index files and search hard-coded credentials."
 __url__ = "https://github.com/helviojunior/filecrawler"
