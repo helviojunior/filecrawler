@@ -558,18 +558,19 @@ class CrawlerBase(object):
                 if tmp is not None:
                     data.update(**tmp)
 
-                    creds = parser.lookup_credentials(data.get('content', ''))
-                    if creds is not None:
-                        data.update(creds)
+                    if not Configuration.disable_rules:
+                        creds = parser.lookup_credentials(data.get('content', ''))
+                        if creds is not None:
+                            data.update(creds)
 
-                        #
-                        #slice = Slice(data['path_virtual'], data['fingerprint'], data.get('content', ''), creds)
-                        #if slice.text != '':
-                        #    data.update(dict(filtered_content=slice.text))
-                        #    if Configuration.store_leaks_evidences:
-                        #        slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
+                            #
+                            #slice = Slice(data['path_virtual'], data['fingerprint'], data.get('content', ''), creds)
+                            #if slice.text != '':
+                            #    data.update(dict(filtered_content=slice.text))
+                            #    if Configuration.store_leaks_evidences:
+                            #        slice.save_evidences(Configuration.evidences_path, data['fingerprint'])
 
-                        self.save_credential(db, file.path_virtual, data)
+                            self.save_credential(db, file.path_virtual, data)
 
                 if not Configuration.store_source:
                     data['content'] = 'Disabled by configuration "store_source"'

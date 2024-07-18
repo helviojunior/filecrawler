@@ -38,6 +38,7 @@ class Configuration(object):
     tasks = 5
     tasks_integrator = 2
     evidences_path = './evidences'
+    disable_rules = False
 
     public_domains = [
         "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
@@ -197,12 +198,15 @@ class Configuration(object):
         if Configuration.tasks_integrator > 50:
             Configuration.tasks_integrator = 50
 
+        Configuration.disable_rules = args.args.disable_rules
+
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
         Logger.pl('     {C}python version:{O} %s{W}' % python_version)
         Logger.pl('     {C}java version:{O} %s{W}' % java_ver)
         Logger.pl('     {C}worker tasks:{O} %s{W}' % Configuration.tasks)
         Logger.pl('     {C}integrator tasks:{O} %s{W}' % Configuration.tasks_integrator)
+        Logger.pl('     {C}leak rules:{O} %s{W}' % ("Enabled" if not Configuration.disable_rules else "Disabled"))
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)

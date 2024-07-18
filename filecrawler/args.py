@@ -126,6 +126,12 @@ class Arguments(object):
                            dest=f'clear_session',
                            help=Color.s('Clear old file status and reindex all files'))
 
+        flags.add_argument('--no-rules',
+                           action='store_true',
+                           default=False,
+                           dest=f'disable_rules',
+                           help=Color.s('Disable all leak checkers'))
+
         flags.add_argument('-h', '--help',
                            action='help',
                            help=Color.s('show help message and exit'))
