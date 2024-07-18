@@ -69,7 +69,7 @@ class CrawlerBase(object):
     @classmethod
     def clear_line(cls):
         try:
-            size = os.get_terminal_size(fd=os.STDOUT_FILENO)
+            size = os.get_terminal_size(fd=sys.__stdout__.fileno())
         except:
             size = 80
 
@@ -280,8 +280,7 @@ class CrawlerBase(object):
 
     def status(self, text, sync):
         try:
-            _, w = os.pipe()
-            isatty = os.isatty(w)
+            isatty = os.isatty(sys.__stderr__.fileno())
             while sync.running:
                 if isatty:
                     self.write_status(

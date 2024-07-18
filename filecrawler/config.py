@@ -207,9 +207,7 @@ class Configuration(object):
         Logger.pl('     {C}worker tasks:{O} %s{W}' % Configuration.tasks)
         Logger.pl('     {C}integrator tasks:{O} %s{W}' % Configuration.tasks_integrator)
         Logger.pl('     {C}leak rules:{O} %s{W}' % ("Enabled" if not Configuration.disable_rules else "Disabled"))
-
-        _, w = os.pipe()
-        Logger.pl('     {C}is a tty:{O} %s{W}' % os.isatty(w))
+        Logger.pl('     {C}is a tty:{O} %s{W}' % os.isatty(sys.__stdout__.fileno()))
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)
