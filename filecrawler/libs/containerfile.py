@@ -22,7 +22,7 @@ class ContainerFile(object):
         dict(name='eml', extensions=['eml'], mime=['message/rfc822']),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
-        dict(name='jar', extensions=['jar', 'war'], mime=[])
+        dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive'])
     ]
 
     def __init__(self, file_path: File):
