@@ -46,17 +46,9 @@ RUN python3 -m pip install -U pip && \
     wget -nv -O "./installer/filecrawler/libs/bin/tika-server.jar" "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar" && \
     echo "${SERVER_HASH} ./installer/filecrawler/libs/bin/tika-server.jar" | sha1sum -c - && \
     python3 -m pip install -U installer/ && \
-    mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/
+    mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/ && \
+    ln -s /u01/ /root/.filecrawler
 
 WORKDIR /u02/
 
-RUN printf "#!/bin/bash \n \
-# Starter \n \
-ln -s /u01/ /root/.filecrawler  \n \
-/bin/bash \n" > /root/start.sh
-
-RUN chmod +x /root/start.sh
-
-#RUN filecrawler --create-config -v
-
-ENTRYPOINT ["/root/start.sh"]
+ENTRYPOINT ["filecrawler"]
