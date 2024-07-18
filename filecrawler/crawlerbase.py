@@ -281,6 +281,7 @@ class CrawlerBase(object):
     def status(self, text, sync):
         try:
             isatty = os.isatty(sys.__stderr__.fileno())
+            time.sleep(5000)  # wait some time before start
             while sync.running:
                 if isatty:
                     self.write_status(
