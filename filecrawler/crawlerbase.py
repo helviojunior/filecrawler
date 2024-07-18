@@ -189,14 +189,14 @@ class CrawlerBase(object):
                     threads=Configuration.tasks) as t:
             t.start()
 
+            t1 = threading.Thread(target=self.status,
+                                  kwargs=dict(sync=t, text=""))
+            t1.daemon = True
+            t1.start()
+
             with Worker(callback=self.integrator_callback, per_thread_callback=self.thread_start_callback,
                         threads=Configuration.tasks_integrator) as ing:
                 ing.start()
-
-                t1 = threading.Thread(target=self.status,
-                                      kwargs=dict(sync=t, text=""))
-                t1.daemon = True
-                t1.start()
 
                 t2 = threading.Thread(target=self.integrator_selector,
                                       kwargs=dict(worker=ing))
@@ -280,16 +280,32 @@ class CrawlerBase(object):
 
     def status(self, text, sync):
         try:
-            isatty = os.isatty(sys.__stderr__.fileno())
-            time.sleep(5)  # wait some time before start
+
+            if not Configuration.is_tty:
+                return
+
+            lbl = "[=====]"
             while sync.running:
-                if isatty:
-                    self.write_status(
-                        f' {text} read: {CrawlerBase.read}, ignored: {CrawlerBase.ignored}, integrated: {CrawlerBase.integrated}')
+                if lbl == "[=====]":
+                    lbl = "[>====]"
+                elif lbl == "[>====]":
+                    lbl = "[=>===]"
+                elif lbl == "[=>===]":
+                    lbl = "[==>==]"
+                elif lbl == "[==>==]":
+                    lbl = "[===>=]"
+                elif lbl == "[===>=]":
+                    lbl = "[====>]"
+                else:
+                    lbl = "[=====]"
+
+                self.write_status(
+                    f' {text} {lbl} read: {CrawlerBase.read}, ignored: {CrawlerBase.ignored}, integrated: {CrawlerBase.integrated}')
                 time.sleep(0.3)
         except KeyboardInterrupt as e:
             raise e
         except Exception as e:
+            print(e)
             if Configuration.verbose >= 2:
                 Tools.print_error(e)
         finally:

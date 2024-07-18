@@ -39,6 +39,7 @@ class Configuration(object):
     tasks_integrator = 2
     evidences_path = './evidences'
     disable_rules = False
+    is_tty = False
 
     public_domains = [
         "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
@@ -199,6 +200,7 @@ class Configuration(object):
             Configuration.tasks_integrator = 50
 
         Configuration.disable_rules = args.args.disable_rules
+        Configuration.is_tty = os.isatty(sys.__stdout__.fileno())
 
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)
@@ -207,7 +209,7 @@ class Configuration(object):
         Logger.pl('     {C}worker tasks:{O} %s{W}' % Configuration.tasks)
         Logger.pl('     {C}integrator tasks:{O} %s{W}' % Configuration.tasks_integrator)
         Logger.pl('     {C}leak rules:{O} %s{W}' % ("Enabled" if not Configuration.disable_rules else "Disabled"))
-        Logger.pl('     {C}is a tty:{O} %s{W}' % os.isatty(sys.__stdout__.fileno()))
+        Logger.pl('     {C}is a tty:{O} %s{W}' % Configuration.is_tty)
 
         if Configuration.verbose > 0:
             Logger.pl('     {C}verbosity level:{O} %s{W}' % Configuration.verbose)
