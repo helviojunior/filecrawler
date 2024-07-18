@@ -3,7 +3,7 @@ import hashlib
 import os
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from filecrawler.libs.file import File
 from filecrawler.libs.process import Process
 import shutil
@@ -53,10 +53,21 @@ class ContainerFile(object):
         return str(self._file)
 
     @staticmethod
-    def is_container(file: File) -> bool:
+    def is_container(file: Union[File, str, Path]) -> bool:
+        i_file = None
+        if isinstance(file, File):
+            i_file = file
+
+        if isinstance(file, Path):
+            i_file = File(file.parent, file)
+
+        if isinstance(file, str):
+            file = Path(file)
+            i_file = File(file.parent, file)
+
         return any([
             x for x in ContainerFile._defs
-            if file.extension in x.get('extensions', []) or file.mime in x.get('mime', [])
+            if i_file.extension in x.get('extensions', []) or file.mime in x.get('mime', [])
         ])
 
     def create_folder(self):

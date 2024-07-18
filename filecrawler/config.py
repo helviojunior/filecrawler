@@ -79,7 +79,9 @@ class Configuration(object):
     extract_files = True
     continue_on_error = True
     ignore_above = '10M'
+    container_ignore_above = '100M'
     max_size = -1
+    container_max_size = -1
     ocr_language = 'eng'
     ocr_enabled = True
     ocr_pdf_strategy = 'ocr_and_text'
@@ -281,6 +283,7 @@ class Configuration(object):
                     Configuration.lang_detect = general.get('lang_detect', Configuration.lang_detect)
                     Configuration.continue_on_error = general.get('continue_on_error', Configuration.continue_on_error)
                     Configuration.ignore_above = general.get('ignore_above', Configuration.ignore_above)
+                    Configuration.container_ignore_above = general.get('container_ignore_above', Configuration.container_ignore_above)
                     Configuration.ocr = general.get('ocr', {}).get('language', Configuration.ocr_language)
                     Configuration.ocr_language = general.get('ocr', {}).get('language', Configuration.ocr_language)
                     Configuration.ocr_enabled = Tools.to_boolean(general.get('ocr', {}).get('enabled', Configuration.ocr_enabled))
@@ -348,6 +351,24 @@ class Configuration(object):
                 Configuration.max_size = size * 1024 * 1024 * 1024
             else:
                 Color.pl('{!} {R}error: invalid ignore_above size {G}%s{W}\r\n' % Configuration.ignore_above)
+                sys.exit(1)
+
+        ia = Configuration.container_ignore_above.lower()
+        x = re.search(r'([0-9]+)([a-z]{0,1})', ia)
+        if x:
+            size = int(x.group(1))
+            unit = x.group(2)
+            if unit == '':
+                Configuration.container_max_size = size
+            elif unit == 'k':
+                Configuration.container_max_size = size * 1024
+            elif unit == 'm':
+                Configuration.container_max_size = size * 1024 * 1024
+            elif unit == 'g':
+                Configuration.container_max_size = size * 1024 * 1024 * 1024
+            else:
+                Color.pl('{!} {R}error: invalid container_ignore_above size {G}%s{W}\r\n' %
+                         Configuration.container_ignore_above)
                 sys.exit(1)
 
         db_name = Path(f'{base_path}/filecrawler.db')
@@ -440,6 +461,7 @@ class Configuration(object):
                 'lang_detect': Configuration.lang_detect,
                 'continue_on_error': Configuration.continue_on_error,
                 'ignore_above': Configuration.ignore_above,
+                'container_ignore_above': Configuration.container_ignore_above,
                 'extract_files': Configuration.extract_files,
                 'ocr': {
                     'language': Configuration.ocr_language,

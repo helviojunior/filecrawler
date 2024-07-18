@@ -235,19 +235,25 @@ class CrawlerBase(object):
         if file is None:
             return True
 
-        if file.size > Configuration.max_size:
+        #if not ContainerFile.is_container(file) and file.size > Configuration.max_size:
+        #    return True
+
+        if file.size > Configuration.container_max_size:
             return True
 
-        ignore = next((
-            True for x in Configuration.excludes
-            if Path(str(file.path).lower()).match(x)
-        ), False)
+        #ignore = next((
+        #    True for x in Configuration.excludes
+        #    if Path(str(file.path).lower()).match(x)
+        #), False)
 
         return CrawlerBase.ignore2(file.size, str(file.path).lower(), [])
 
     @staticmethod
     def ignore2(size: int, path: str, include: list) -> bool:
-        if size > Configuration.max_size:
+        if not ContainerFile.is_container(path) and size > Configuration.max_size:
+            return True
+
+        if size > Configuration.container_max_size:
             return True
 
         if path is None:
