@@ -615,7 +615,6 @@ class CrawlerBase(object):
                         CrawlerBase.ignored += 1
                     else:
                         self.integrate(**data)
-                        CrawlerBase.integrated += 1
 
                     integrated = 1
                     b64_data = ''
@@ -635,6 +634,8 @@ class CrawlerBase(object):
                     except sqlite3.OperationalError as e:
                         if 'locked' in str(e):
                             time.sleep(1)
+
+                CrawlerBase.integrated += integrated
 
         if Configuration.verbose >= 3:
             Color.pl('{*} {GR}finishing processor for %s{W}' % file.path_virtual)
