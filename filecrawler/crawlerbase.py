@@ -281,7 +281,7 @@ class CrawlerBase(object):
     def status(self, text, sync):
         try:
             isatty = os.isatty(sys.__stderr__.fileno())
-            time.sleep(5000)  # wait some time before start
+            time.sleep(5)  # wait some time before start
             while sync.running:
                 if isatty:
                     self.write_status(
@@ -289,8 +289,9 @@ class CrawlerBase(object):
                 time.sleep(0.3)
         except KeyboardInterrupt as e:
             raise e
-        except:
-            pass
+        except Exception as e:
+            if Configuration.verbose >= 2:
+                Tools.print_error(e)
         finally:
             self.clear_line()
 
