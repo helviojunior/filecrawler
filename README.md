@@ -138,7 +138,8 @@ Use "filecrawler [module] --help" for more information about a command.
 
 # Docker Support
 
-Build filecrawler + ELK image:
+## Build filecrawler + ELK image:
+
 ```bash
 $ sysctl -w vm.max_map_count=262144
 $ docker build --no-cache -t "filecrawler:latest" https://github.com/helviojunior/filecrawler.git#main
@@ -156,6 +157,27 @@ $ docker run -p 443:443 -p 80:80 -p 9200:9200 -v "$HOME/.filecrawler/":/u01/ -v 
 $ filecrawler --create-config -v
 $ filecrawler --path /u02/ -T 30 -v --elastic --index-name filecrawler 
 ```
+
+
+## Build filecrawler only:
+
+```bash
+$ docker build --no-cache -t "filecrawler:client" -f Dockerfile.client https://github.com/helviojunior/filecrawler.git#main
+```
+
+Using Filecrawler's image:
+
+Goes to path to be indexed and run the commands bellow
+
+```bash
+$ mkdir -p $HOME/.filecrawler/
+$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ -it "filecrawler:client"
+
+#Inside of docker run
+$ filecrawler --create-config -v
+$ filecrawler --path /u02/ -T 30 -v --elastic --index-name filecrawler 
+```
+
 
 # Credits
 
