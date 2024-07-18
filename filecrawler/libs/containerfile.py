@@ -22,7 +22,7 @@ class ContainerFile(object):
         dict(name='eml', extensions=['eml'], mime=['message/rfc822']),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
-        dict(name='jar', extensions=['jar'], mime=[])
+        dict(name='jar', extensions=['jar', 'war'], mime=[])
     ]
 
     def __init__(self, file_path: File):
@@ -326,16 +326,14 @@ class ContainerFile(object):
             f'java -jar apktool_2.7.0.jar -f d \'{self._file.path}\' -o \'{self._temp_path}\'',
             cwd=os.path.join(Configuration.lib_path, 'bin'))
 
+        # in case of error, try to extract as a Zip file
         if rc != 0:
             try:
-                if os.path.isfile(self._temp_path):
-                    from zipfile import ZipFile
-                    with ZipFile(str(self._file.path), 'r') as zObject:
-                        zObject.extractall(self._temp_path)
+                from zipfile import ZipFile
+                with ZipFile(str(self._file.path), 'r') as zObject:
+                    zObject.extractall(self._temp_path)
 
-                    return True
-                elif os.path.isdir(self._temp_path):
-                    return True
+                return True
             except:
                 return False
 
