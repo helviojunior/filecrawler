@@ -135,12 +135,12 @@ class Tools:
     @staticmethod
     def sanitize_filename(name):
         if name is None:
-          return ''
+            return ''
         name = Tools.strip_accents(name.strip())
-        while ('  ' in name):
+        while '  ' in name:
             name = name.replace('  ', ' ')
         name = name.replace(' ', '-')
-        while ('--' in name):
+        while '--' in name:
             name = name.replace('--', '-')
         return ''.join(filter(Tools.permited_char_filename, name))
 

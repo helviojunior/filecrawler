@@ -11,6 +11,7 @@ import pkgutil
 import random
 import string
 from argparse import _ArgumentGroup, ArgumentParser, Namespace
+from typing import Union
 
 from filecrawler._exceptions import IntegrationError
 from filecrawler.alertbase import AlertBase
@@ -246,25 +247,36 @@ class CrawlerBase(object):
         #    if Path(str(file.path).lower()).match(x)
         #), False)
 
-        return CrawlerBase.ignore2(file.size, str(file.path).lower(), [])
+        return CrawlerBase.ignore2(file.size, file, [])
 
     @staticmethod
-    def ignore2(size: int, path: str, include: list) -> bool:
-        if not ContainerFile.is_container(path) and size > Configuration.max_size:
-            return True
-
-        if size > Configuration.container_max_size:
-            return True
+    def ignore2(size: int, path: Union[File, str], include: list) -> bool:
+        i_path = None
 
         if path is None:
             return True
 
+        if isinstance(path, File):
+            i_path = Path(str(path.path)).resolve()
+
+        if not isinstance(path, File):
+            i_path = Path(str(path)).resolve()
+            try:
+                if not ContainerFile.is_container(File(i_path.parent, i_path)) and size > Configuration.max_size:
+                    return True
+
+                if size > Configuration.container_max_size:
+                    return True
+            except:
+                if size > Configuration.max_size:
+                    return True
+
         ignore = next((
             True for x in [
-                x1 for x1 in Configuration.excludes
-                if x1 not in include
-            ]
-            if Path(str(path).lower()).match(x)
+            x1 for x1 in Configuration.excludes
+            if x1 not in include
+        ]
+            if Path(str(i_path).lower()).match(x)
         ), False)
 
         return ignore
@@ -525,6 +537,8 @@ class CrawlerBase(object):
             Color.pl('{*} {GR}processing %s{W}' % file.path_virtual)
 
         if ContainerFile.is_container(file):
+            if Configuration.verbose >= 3:
+                Color.pl('{*} {GR}container file %s{W}' % file.path_virtual)
             with(ContainerFile(file)) as container:
                 out_path = container.extract()
                 if out_path is not None:
@@ -538,6 +552,8 @@ class CrawlerBase(object):
 
             if CrawlerBase.ignore(file):
                 CrawlerBase.ignored += 1
+                if Configuration.verbose >= 3:
+                    Color.pl('{*} {GR}file ignored %s{W}' % file.path_virtual)
                 return
 
             CrawlerBase.read += 1

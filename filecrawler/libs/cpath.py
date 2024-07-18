@@ -31,6 +31,7 @@ class CPath(object):
         self._path_virtual = '/' + self._path_virtual.replace('\\\\', '/').replace('\\', '/').replace('//', '/').lstrip('\\/ ')
 
         if not self._path.exists():
+            from filecrawler.config import Configuration
             Color.pl('\n{!} {R}Error:{O} Path not found{W}'
                      '\n            {W}Real path.....: {G}%s{W}'
                      '\n            {W}Virtual path..: {G}%s{W}' % (self._path, self._path_real))

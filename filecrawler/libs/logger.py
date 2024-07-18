@@ -30,13 +30,13 @@ class Logger(object):
 
     @staticmethod
     def info(text):
-        if Logger.level >= INFO:
-            Logger.pl("{+} {W}%s{W}" % text)
+        #if Logger.level >= INFO:
+        Logger.pl("{+} {W}%s{W}" % text)
 
     @staticmethod
     def debug(text):
-        if Logger.level >= DEBUG:
-            Logger.pl("{*} {W}{D}%s{W}" % text)
+        #if Logger.level >= DEBUG:
+        Logger.pl("{*} {W}{D}%s{W}" % text)
 
     @staticmethod
     def _checkLevel(level):

@@ -53,21 +53,13 @@ class ContainerFile(object):
         return str(self._file)
 
     @staticmethod
-    def is_container(file: Union[File, str, Path]) -> bool:
-        i_file = None
-        if isinstance(file, File):
-            i_file = file
-
-        if isinstance(file, Path):
-            i_file = File(file.parent, file)
-
-        if isinstance(file, str):
-            file = Path(file)
-            i_file = File(file.parent, file)
+    def is_container(file: File) -> bool:
+        if not isinstance(file, File):
+            raise Exception("Invalid file type!")
 
         return any([
             x for x in ContainerFile._defs
-            if i_file.extension in x.get('extensions', []) or file.mime in x.get('mime', [])
+            if file.extension in x.get('extensions', []) or file.mime in x.get('mime', [])
         ])
 
     def create_folder(self):
@@ -330,16 +322,21 @@ class ContainerFile(object):
     def _apktool(self) -> bool:
         from filecrawler.config import Configuration
 
-        (retcode, _, _) = Process.call(
-            f'java -jar apktool_2.7.0.jar -f d "{self._file.path}" -o "{self._temp_path}"',
+        rc, _, _ = Process.call(
+            f'java -jar apktool_2.7.0.jar -f d \'{self._file.path}\' -o \'{self._temp_path}\'',
             cwd=os.path.join(Configuration.lib_path, 'bin'))
 
-        if retcode != 0:
+        if rc != 0:
             try:
-                from zipfile import ZipFile
-                with ZipFile(str(self._file.path), 'r') as zObject:
-                    zObject.extractall(self._temp_path)
+                if os.path.isfile(self._temp_path):
+                    from zipfile import ZipFile
+                    with ZipFile(str(self._file.path), 'r') as zObject:
+                        zObject.extractall(self._temp_path)
 
-                return True
+                    return True
+                elif os.path.isdir(self._temp_path):
+                    return True
             except:
                 return False
+
+        return os.path.isdir(self._temp_path)

@@ -37,6 +37,9 @@ class Process(object):
             if Configuration.verbose > 1:
                 Logger.debug("Executing (Shell): {G}%s" % command)
 
+        if Configuration.verbose > 1:
+            Logger.debug("Cwd: {G}%s" % cwd)
+
         # it cause hang on windows
         #pid = Popen(command, cwd=cwd, stdout=PIPE, stderr=PIPE, shell=shell)
         #retcode = pid.wait()
@@ -60,11 +63,11 @@ class Process(object):
         if type(stderr) is bytes: stderr = stderr.decode('utf-8')
 
         if Configuration.verbose > 1 and stdout is not None and stdout.strip() != '':
-            Color.pe("{P} [stdout] %s{W}" % '\n [stdout] '.join(stdout.strip().split('\n')))
+            Logger.pl("{P} [stdout] %s{W}" % '\n [stdout] '.join(stdout.strip().split('\n')))
         if Configuration.verbose > 1 and stderr is not None and stderr.strip() != '':
-            Color.pe("{P} [stderr] %s{W}" % '\n [stderr] '.join(stderr.strip().split('\n')))
+            Logger.pl("{P} [stderr] %s{W}" % '\n [stderr] '.join(stderr.strip().split('\n')))
 
-        return (retcode, stdout, stderr)
+        return retcode, stdout, stderr
 
     @staticmethod
     def get_path():
@@ -72,11 +75,13 @@ class Process(object):
         if p == 'darwin':
             p = 'macosx'
 
-        bin_path = Path(os.path.dirname(__file__) + f'../libs/bin/')
-        bin_path2 = Path(os.path.dirname(__file__) + f'../libs/bin/{p}')
+        bin_path = os.path.join(Path(os.path.dirname(__file__)).resolve().parent, 'libs', 'bin')
+        bin_path2 = os.path.join(Path(os.path.dirname(__file__)).resolve().parent, 'libs', 'bin', p)
         my_env = os.environ.copy()
-        return f"{bin_path}:{bin_path2}:" + my_env["PATH"]
-
+        if p == 'windows':
+            return f"{bin_path};{bin_path2};" + my_env["PATH"]
+        else:
+            return my_env["PATH"] + f":{bin_path}:{bin_path2}"
 
     @staticmethod
     def exists(program):
