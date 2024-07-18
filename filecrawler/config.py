@@ -54,7 +54,7 @@ class Configuration(object):
         '*/*.pyc',
         '*/*.exe', '*/*.dll', '*/*.msi',
         '*/*.emf', '*/*.bdb', '*/*.vox', '*/*.bin', '*/*.dat', '*/*.pkl',
-        '*/*.parquet', '*/*.parq', '*/*.rsc',
+        '*/*.parquet', '*/*.parq', '*/*.rsc', '*/*.DS_Store'
     ]
     exclude_domains = [
         "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
