@@ -44,6 +44,10 @@ class CrawlerDB(Database):
         return self.select_first('index', **f).get('index_id', -1)
 
     def insert_or_get_file(self, **data) -> Optional[dict]:
+        from filecrawler.config import Configuration
+
+        if Configuration.disable_db:
+            return {**data, **dict(inserted=1, updated=0)}
 
         for k in [k1 for k1 in data.keys()]:
             if k not in self._FILE_INDEX_COLUMNS:

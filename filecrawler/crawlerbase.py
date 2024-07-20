@@ -569,7 +569,7 @@ class CrawlerBase(object):
                     row = db.insert_or_get_file(
                         **file.db_dict,
                         index_id=self.index_id,
-                        integrated=1, # To not try to integrate without content
+                        integrated=1,  # To not try to integrate without content
                     )
                     if row is None:
                         last_error = Exception('database register is none')
@@ -643,19 +643,20 @@ class CrawlerBase(object):
                 except:
                     pass
 
-                for i in range(5):
-                    try:
-                        db.update('file_index',
-                                  filter_data=dict(file_id=row['file_id']),
-                                  **dict(
-                                      integrated=integrated,
-                                      data=b64_data if not integrated else ''
-                                  )
-                        )
-                        break
-                    except sqlite3.OperationalError as e:
-                        if 'locked' in str(e):
-                            time.sleep(1)
+                if not Configuration.disable_db:
+                    for i in range(5):
+                        try:
+                            db.update('file_index',
+                                      filter_data=dict(file_id=row['file_id']),
+                                      **dict(
+                                          integrated=integrated,
+                                          data=b64_data if not integrated else ''
+                                      )
+                            )
+                            break
+                        except sqlite3.OperationalError as e:
+                            if 'locked' in str(e):
+                                time.sleep(1)
 
                 CrawlerBase.integrated += integrated
 

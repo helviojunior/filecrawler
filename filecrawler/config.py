@@ -40,6 +40,7 @@ class Configuration(object):
     evidences_path = './evidences'
     disable_rules = False
     is_tty = False
+    disable_db = False
 
     public_domains = [
         "hotmail.com", "gmail.com", 'yahoo.com', 'outlook.com', 'terra.com', 'uol.com', 'ibest.com', 'ig.com.br'
@@ -203,6 +204,7 @@ class Configuration(object):
 
         Configuration.disable_rules = args.args.disable_rules
         Configuration.is_tty = os.isatty(sys.__stdout__.fileno())
+        Configuration.disable_db = args.args.disable_db
 
         Color.pl('{+} {W}Startup parameters')
         Logger.pl('     {C}command line:{O} %s{W}' % Configuration.cmd_line)

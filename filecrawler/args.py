@@ -132,6 +132,12 @@ class Arguments(object):
                            dest=f'disable_rules',
                            help=Color.s('Disable all leak checkers'))
 
+        flags.add_argument('--no-db',
+                           action='store_true',
+                           default=False,
+                           dest=f'disable_db',
+                           help=Color.s('Disable db inserts/checks'))
+
         flags.add_argument('-h', '--help',
                            action='help',
                            help=Color.s('show help message and exit'))
