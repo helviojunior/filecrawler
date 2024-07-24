@@ -57,7 +57,8 @@ class File(CPath):
             return self._fingerprint
 
         sha1sum = hashlib.sha1()
-        sha1sum.update(f'{self.hash}_{self._path_virtual}'.encode("utf-8"))
+        #sha1sum.update(f'{self.hash}_{self._path_virtual}'.encode("utf-8"))
+        sha1sum.update(f'{self.hash}_{self._path.name.lower()}'.encode("utf-8"))
         self._fingerprint = sha1sum.hexdigest()
 
         return self._fingerprint
