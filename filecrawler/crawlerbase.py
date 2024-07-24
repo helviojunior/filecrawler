@@ -460,7 +460,7 @@ class CrawlerBase(object):
                     if id is not None and id.strip() != '':
                         if not self.must_index(file=id):
                             CrawlerBase.ignored += 1
-                            return
+                            continue
 
                     parser = ParserBase.get_parser_instance(f_data['extension'], f_data['mime_type'])
                     f_data.update(dict(parser=parser.name))
