@@ -194,7 +194,10 @@ class Elastic(CrawlerBase):
 
             with(Elasticsearch(self.nodes, timeout=30, max_retries=10, retry_on_timeout=True)) as es:
                 res = es.exists(index=Configuration.index_name, id=id)
-                return res is False
+                if res is True:
+                    return False
+
+            return True
         except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             return True
 
