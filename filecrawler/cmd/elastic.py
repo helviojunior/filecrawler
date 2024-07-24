@@ -2,6 +2,8 @@ import json
 import sys
 from argparse import _ArgumentGroup, Namespace
 
+from filecrawler.libs.file import File
+
 from filecrawler._exceptions import IntegrationError
 from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
@@ -16,6 +18,8 @@ requests.packages.urllib3.disable_warnings()
 class Elastic(CrawlerBase):
     nodes = []
     _CREDS_WHITE_LIST = []
+    _CONTROL_KEYS = ["indexing_date", "fingerprint", "filename", "extension",
+                      "mime_type", "file_size", "path_virtual", "path_real"]
 
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
@@ -153,6 +157,47 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
+        if not es.indices.exists(index='.ctrl_' + Configuration.index_name):
+            request_body = {
+                "settings": {
+                    "number_of_replicas": 1,
+                    "index": {"highlight.max_analyzed_offset": 10000000}
+                },
+
+                'mappings': {
+                    'properties': {
+                        'indexing_date': {'type': 'date'},
+                        'fingerprint': {'type': 'keyword'},
+                        'filename': {'type': 'text'},
+                        'extension': {'type': 'keyword'},
+                        'mime_type': {'type': 'keyword'},
+                        'file_size': {'type': 'long'},
+                        'path_virtual': {'type': 'text'},
+                        'path_real': {'type': 'text'},
+                    }
+                }
+            }
+
+            es.indices.create(
+                index='.ctrl_' + Configuration.index_name,
+                body=request_body
+            )
+
+    def must_index(self, file: File) -> bool:
+        if not isinstance(file, File):
+            return True
+
+        try:
+            id = file.fingerprint
+            if Configuration.filename_as_id:
+                id = str(file.path_virtual)
+
+            with(Elasticsearch(self.nodes, timeout=30, max_retries=10, retry_on_timeout=True)) as es:
+                res = es.exists(index=Configuration.index_name, id=id)
+                return res is False
+        except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
+            return True
+
     def integrate(self, **data):
         try:
 
@@ -201,6 +246,12 @@ class Elastic(CrawlerBase):
                     if res is None or res.get('_shards', {}).get('successful', 0) == 0:
                         if not Configuration.continue_on_error:
                             raise Exception(f'Cannot insert elasticsearch data: {res}')
+
+                es.index(index='.ctrl_' + Configuration.index_name, id=id, document={
+                    k: v
+                    for k, v in data.items()
+                    if k.lower() in Elastic._CONTROL_KEYS
+                })
 
         except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             raise IntegrationError(e)

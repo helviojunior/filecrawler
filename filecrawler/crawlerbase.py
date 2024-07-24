@@ -281,6 +281,10 @@ class CrawlerBase(object):
 
         return ignore
 
+    def must_index(self, file: File) -> bool:
+        if not isinstance(file, File):
+            return True
+
     def thread_start_callback(self, index, **kwargs):
         return CrawlerDB(auto_create=False,
                          db_name=Configuration.db_name)
@@ -305,15 +309,17 @@ class CrawlerBase(object):
             lbl = "[=====]"
             while sync.running:
                 if lbl == "[=====]":
-                    lbl = "[>====]"
-                elif lbl == "[>====]":
-                    lbl = "[=>===]"
-                elif lbl == "[=>===]":
-                    lbl = "[==>==]"
-                elif lbl == "[==>==]":
-                    lbl = "[===>=]"
-                elif lbl == "[===>=]":
-                    lbl = "[====>]"
+                    lbl = "[ ====]"
+                elif lbl == "[ ====]":
+                    lbl = "[  ===]"
+                elif lbl == "[  ===]":
+                    lbl = "[=  ==]"
+                elif lbl == "[=  ==]":
+                    lbl = "[==  =]"
+                elif lbl == "[==  =]":
+                    lbl = "[===  ]"
+                elif lbl == "[===  ]":
+                    lbl = "[==== ]"
                 else:
                     lbl = "[=====]"
 
@@ -536,6 +542,10 @@ class CrawlerBase(object):
         if Configuration.verbose >= 3:
             Color.pl('{*} {GR}processing %s{W}' % file.path_virtual)
 
+        if not self.must_index(file=file):
+            CrawlerBase.ignored += 1
+            return
+
         if ContainerFile.is_container(file):
             if Configuration.verbose >= 3:
                 Color.pl('{*} {GR}container file %s{W}' % file.path_virtual)
@@ -712,16 +722,21 @@ class CrawlerBase(object):
 
     @classmethod
     def get_credentials_data(cls, data: dict) -> dict:
-        return {
-                    f['fingerprint']: dict(
-                        match=f['match'],
-                        created=data['created'],
-                        indexing_date=data['indexing_date'],
-                        rule=fl.get('name', ''),
-                        filtered_file=data.get('filtered_content', ''),
-                        severity=f.get('severity', 0),
-                        entropy=f.get('entropy', None),
-                        content=json.dumps(f, default=Tools.json_serial, indent=2)
-                    )
-                    for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
-                }
+        try:
+            return {
+                        f['fingerprint']: dict(
+                            match=f['match'],
+                            created=data['created'],
+                            indexing_date=data['indexing_date'],
+                            rule=fl.get('name', ''),
+                            filtered_file=data.get('filtered_content', ''),
+                            severity=f.get('severity', 0),
+                            entropy=f.get('entropy', None),
+                            content=json.dumps(f, default=Tools.json_serial, indent=2)
+                        )
+                        for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
+                    }
+        except Exception as e:
+            if Configuration.verbose >= 3:
+                Tools.print_error(e)
+            return {}
