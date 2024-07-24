@@ -1,6 +1,7 @@
 import json
 import sys
 from argparse import _ArgumentGroup, Namespace
+from typing import Union
 
 from filecrawler.libs.file import File
 
@@ -183,14 +184,16 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
-    def must_index(self, file: File) -> bool:
-        if not isinstance(file, File):
-            return True
-
+    def must_index(self, file: Union[File, str]) -> bool:
         try:
-            id = file.fingerprint
-            if Configuration.filename_as_id:
-                id = str(file.path_virtual)
+            if isinstance(file, File):
+                id = file.fingerprint
+                if Configuration.filename_as_id:
+                    id = str(file.path_virtual)
+            elif isinstance(file, str):
+                id = file
+            else:
+                return True
 
             with(Elasticsearch(self.nodes, timeout=30, max_retries=10, retry_on_timeout=True)) as es:
                 res = es.exists(index=Configuration.index_name, id=id)

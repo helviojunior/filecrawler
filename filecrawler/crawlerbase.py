@@ -281,9 +281,8 @@ class CrawlerBase(object):
 
         return ignore
 
-    def must_index(self, file: File) -> bool:
-        if not isinstance(file, File):
-            return True
+    def must_index(self, file: Union[File, str]) -> bool:
+        return True
 
     def thread_start_callback(self, index, **kwargs):
         return CrawlerDB(auto_create=False,
@@ -453,6 +452,15 @@ class CrawlerBase(object):
                     if CrawlerBase.ignore2(len(f_data.get('content', '')), f_data['path_real'], ['*/.git/*', '*/.git/']):
                         CrawlerBase.ignored += 1
                         continue
+
+                    # Check if already integrated
+                    id = f_data.get('fingerprint', None)
+                    if Configuration.filename_as_id or id is None:
+                        id = f_data.get('path_virtual', '')
+                    if id is not None and id.strip() != '':
+                        if not self.must_index(file=id):
+                            CrawlerBase.ignored += 1
+                            return
 
                     parser = ParserBase.get_parser_instance(f_data['extension'], f_data['mime_type'])
                     f_data.update(dict(parser=parser.name))
