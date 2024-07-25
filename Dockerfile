@@ -56,10 +56,14 @@ RUN cp /etc/init.d/elasticsearch init.sh && \
     SERVER_HASH=$(curl -s "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar.sha1") && \
     wget -nv -O "./installer/filecrawler/libs/bin/tika-server.jar" "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar" && \
     echo "${SERVER_HASH} ./installer/filecrawler/libs/bin/tika-server.jar" | sha1sum -c - && \
+    VER=$(curl -s  "https://api.github.com/repos/skylot/jadx/tags" | jq -r '.[0].name' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && \
+    wget -nv -O "/tmp/jadx.zip" "https://github.com/skylot/jadx/releases/download/v$VER/jadx-$VER.zip" && \
+    unzip -o /tmp/jadx.zip -d /tmp/ && \
+    FILE=$(find /tmp/ -name "jadx*.jar") && \
+    mv "$FILE" "./installer/filecrawler/libs/bin/jadx.jar" && \
     python3 -m pip install -U installer/ && \
-    python3 ./installer/scripts/config_elk.py && \
-    cp ./installer/scripts/config_elk.py /root/ && \
-    mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/
+    mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/ && \
+    ln -s /u01/ /root/.filecrawler
 
 WORKDIR /u02/
 
