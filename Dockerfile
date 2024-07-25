@@ -63,7 +63,8 @@ RUN cp /etc/init.d/elasticsearch init.sh && \
     mv "$FILE" "./installer/filecrawler/libs/bin/jadx.jar" && \
     python3 -m pip install -U installer/ && \
     mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/ && \
-    ln -s /u01/ /root/.filecrawler
+    ln -s /u01/ /root/.filecrawler && \
+    rm -rf /tmp/*
 
 WORKDIR /u02/
 
