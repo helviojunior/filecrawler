@@ -51,7 +51,7 @@ RUN python3 -m pip install -U pip && \
     FILE=$(find /tmp/ -name "jadx*.jar") && \
     mv "$FILE" "./installer/filecrawler/libs/bin/jadx.jar" && \
     VER=$(curl -s  "https://api.github.com/repos/iBotPeaches/Apktool/tags" | jq -r '.[0].name' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && \
-    wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool-$VER.jar" && \
+    wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool_$VER.jar" && \
     mv "/tmp/apktool.jar" "./installer/filecrawler/libs/bin/" && \
     python3 -m pip install -U installer/ && \
     mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/ && \
