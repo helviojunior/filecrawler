@@ -101,6 +101,9 @@ class FileCrawler(object):
         import requests
         requests.packages.urllib3.disable_warnings()
 
+        if Configuration.lib_path is None or Configuration.lib_path.strip() == '':
+            Configuration.lib_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'libs')
+
         if not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')) or \
                 not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'jadx.jar')) or \
                 not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'apktool.jar')):
