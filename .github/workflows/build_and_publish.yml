@@ -151,6 +151,14 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install -r requirements.txt -r tests/requirements-test.txt
 
+      - name: Install filecrawler
+        run: |
+          pip install .
+
+      - name: Filecrawler basic test
+        run: |
+          filecrawler -h
+
       - name: Build artifact
         run: |
           python setup.py sdist
