@@ -101,7 +101,9 @@ class FileCrawler(object):
         import requests
         requests.packages.urllib3.disable_warnings()
 
-        if not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')):
+        if not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')) or \
+                not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'jadx.jar')) or \
+                not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'apktool.jar')):
 
             Color.pl('{+} {GR}External Libs not found, trying to get last release.{W}\n')
             tmp = os.path.join(Tools.gettempdir(), 'libs.zip')
