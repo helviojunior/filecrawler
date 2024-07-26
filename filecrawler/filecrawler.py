@@ -5,6 +5,7 @@ import hashlib
 import io
 import shutil
 import tempfile
+from pathlib import Path
 
 from .libs.process import Process
 
@@ -66,6 +67,7 @@ class FileCrawler(object):
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             Logger.pl('{+} {C}start time {O}%s{W}' % timestamp)
 
+            FileCrawler.get_external_libs()
             FileCrawler.load_tika()
 
             # Execute the specific actions
@@ -92,6 +94,32 @@ class FileCrawler(object):
     def print_banner(self):
         """ Displays ASCII art of the highest caliber.  """
         Color.pl(Configuration.get_banner())
+
+    @staticmethod
+    def get_external_libs():
+        import requests
+        requests.packages.urllib3.disable_warnings()
+
+        if not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')):
+
+            Color.pl('{+} {GR}External Libs not found, trying to get last release.{W}')
+            tmp = os.path.join(Tools.gettempdir(), 'libs.zip')
+
+            r = requests.get(
+                'https://github.com/helviojunior/filecrawler/releases/latest/download/filecrawler_extra_libs.zip',
+                allow_redirects=True, verify=False, timeout=30)
+
+            with open(tmp, 'wb') as f:
+                f.write(r.content)
+
+            from zipfile import ZipFile
+            with ZipFile(tmp, 'r') as zObject:
+                zObject.extractall(path=os.path.join(Configuration.lib_path, 'bin'))
+
+            try:
+                os.unlink(tmp)
+            except:
+                pass
 
     @staticmethod
     def load_tika():
