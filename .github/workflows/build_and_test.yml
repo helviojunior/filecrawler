@@ -94,7 +94,7 @@ jobs:
       - name: Get JADX
         run: |
           VER=$(curl -s  "https://api.github.com/repos/iBotPeaches/Apktool/tags" | jq -r '.[0].name' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
-          wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool-$VER.jar"
+          wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool_$VER.jar"
           mv "/tmp/apktool.jar" "/tmp/filecrawler/bin/"
 
       - name: Create bin zip
