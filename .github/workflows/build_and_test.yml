@@ -10,6 +10,7 @@ on:
         - README.md
         - LICENSE
         - TODO
+        - Dockerfile
         - filecrawler/__meta__.py
         - .github/workflows/build_and_publish.yml
 
@@ -20,6 +21,7 @@ on:
         - README.md
         - LICENSE
         - TODO
+        - Dockerfile
         - filecrawler/__meta__.py
         - .github/workflows/build_and_publish.yml
 
