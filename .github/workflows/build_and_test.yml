@@ -188,7 +188,7 @@ jobs:
           mkdir -p /tmp/jadx/
           unzip -o /tmp/jadx.zip -d /tmp/jadx/
           FILE=$(find /tmp/jadx/ -name "jadx*.jar")
-          mv "$FILE" "./installer/filecrawler/libs/bin/jadx.jar"
+          mv "$FILE" "./filecrawler/libs/bin/jadx.jar"
 
       - name: Install filecrawler
         run: |

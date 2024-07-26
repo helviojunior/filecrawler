@@ -138,11 +138,28 @@ Use "filecrawler [module] --help" for more information about a command.
 
 # Docker Support
 
+## Build filecrawler only:
+
+```bash
+$ docker build --no-cache -t "filecrawler:client" https://github.com/helviojunior/filecrawler.git#main
+```
+
+Using Filecrawler's image:
+
+Goes to path to be indexed and run the commands bellow
+
+```bash
+$ mkdir -p $HOME/.filecrawler/
+$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --create-config -v
+$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --path /u02/ -T 30 -v --elastic --index-name filecrawler
+```
+
+
 ## Build filecrawler + ELK image:
 
 ```bash
 $ sysctl -w vm.max_map_count=262144
-$ docker build --no-cache -t "filecrawler:latest" https://github.com/helviojunior/filecrawler.git#main
+$ docker build --no-cache -t "filecrawler:latest" -f Dockerfile.elk_server https://github.com/helviojunior/filecrawler.git#main
 ```
 
 Using Filecrawler's image:
@@ -158,22 +175,6 @@ $ filecrawler --create-config -v
 $ filecrawler --path /u02/ -T 30 -v --elastic --index-name filecrawler 
 ```
 
-
-## Build filecrawler only:
-
-```bash
-$ docker build --no-cache -t "filecrawler:client" -f Dockerfile.client https://github.com/helviojunior/filecrawler.git#main
-```
-
-Using Filecrawler's image:
-
-Goes to path to be indexed and run the commands bellow
-
-```bash
-$ mkdir -p $HOME/.filecrawler/
-$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --create-config -v
-$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --path /u02/ -T 30 -v --elastic --index-name filecrawler
-```
 
 
 # Credits
