@@ -52,29 +52,17 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Get last release files
-        id: checkurls
-        run: |
-          url1=$(curl -s https://api.github.com/repos/helviojunior/filecrawler/releases/latest | jq -r '.assets[] | select(.name|match("filecrawler_extra_libs.zip$")) | .browser_download_url')
-          echo "BINUTILS_URL=${url1}" >> $GITHUB_OUTPUT
-
       - name: Install dependencies
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
           packages: wget curl jq zip
           version: 1.0
 
       - name: Create temp path
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         run: |
           mkdir -p /tmp/filecrawler/bin
 
       - name: Get tika server .jar
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         run: |
           VER=$(curl -s "https://raw.githubusercontent.com/chrismattmann/tika-python/master/tika/tika.py" | grep 'TIKA_VERSION' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' || echo '2.6.0')
           SERVER_HASH=$(curl -s "http://search.maven.org/remotecontent?filepath=org/apache/tika/tika-server-standard/$VER/tika-server-standard-$VER.jar.sha1")
@@ -82,8 +70,6 @@ jobs:
           echo "${SERVER_HASH} /tmp/filecrawler/bin/tika-server.jar" | sha1sum -c - || exit 1
 
       - name: Get JADX
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         run: |
           VER=$(curl -s  "https://api.github.com/repos/skylot/jadx/tags" | jq -r '.[0].name' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
           wget -nv -O "/tmp/jadx.zip" "https://github.com/skylot/jadx/releases/download/v$VER/jadx-$VER.zip"
@@ -92,23 +78,17 @@ jobs:
           FILE=$(find /tmp/jadx/ -name "jadx*.jar")
           mv "$FILE" "/tmp/filecrawler/bin/jadx.jar"
 
-      - name: Get JADX
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
+      - name: Get APKTool
         run: |
           VER=$(curl -s  "https://api.github.com/repos/iBotPeaches/Apktool/tags" | jq -r '.[0].name' | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
           wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool_$VER.jar"
           mv "/tmp/apktool.jar" "/tmp/filecrawler/bin/"
 
       - name: Create bin zip
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         run: |
           zip -j -5 /tmp/filecrawler_extra_libs.zip /tmp/filecrawler/bin/*
 
       - name: Upload binutils release asset
-        if:
-          steps.checkurls.outputs.BINUTILS_URL == ''
         id: filecrawler_extra_libs
         uses: actions/upload-release-asset@v1
         env:
