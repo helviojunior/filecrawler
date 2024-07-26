@@ -111,7 +111,7 @@ class FileCrawler(object):
             if Configuration.verbose >= 1:
                 Color.pl('{?} Loading tika: {GR}')
 
-            p = tempfile.gettempdir()
+            p = Tools.gettempdir()
             os.environ["TIKA_PATH"] = p
             os.environ["TIKA_LOG_PATH"] = p
             os.environ["TIKA_SERVER_JAR"] = 'tika-server.jar'

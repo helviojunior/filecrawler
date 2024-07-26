@@ -4,6 +4,9 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Optional, Union
+
+from filecrawler.util.tools import Tools
+
 from filecrawler.libs.file import File
 from filecrawler.libs.process import Process
 import shutil
@@ -31,7 +34,7 @@ class ContainerFile(object):
         if not self._file.path.exists():
             raise FileNotFoundError(f'File not found: {self._file}')
 
-        self._temp_path = tempfile.TemporaryDirectory(prefix='filecrawler_').name
+        self._temp_path = Tools.gettempdir(prefix='filecrawler_')
 
     def __enter__(self):
         return self

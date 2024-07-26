@@ -6,11 +6,14 @@ import os
 import platform
 import string, random, sys, re
 import subprocess
+import tempfile
 import time
 from email.message import EmailMessage
 
 import unicodedata
 import email
+from pathlib import Path
+
 from tabulate import tabulate
 from filecrawler.libs.color import Color
 
@@ -188,6 +191,27 @@ class Tools:
                     break
 
         return ver
+
+    @staticmethod
+    def gettempdir(prefix: str = None) -> str:
+        if prefix is None:
+            tmp = tempfile.gettempdir()
+        else:
+            tmp = tempfile.TemporaryDirectory(prefix=prefix).name
+        try:
+            path = Path(str(tmp))
+            path.mkdir(parents=True)
+            if os.path.isdir(tmp):
+                return str(tmp)
+        except Exception as e:
+            p = platform.system().lower()
+            if p == 'darwin':
+                p = 'macosx'
+            p1 = f'{prefix}' if prefix is not None else ''
+            if p == 'windows':
+                return f"c:\\windows\\temp\\{p1}"
+            else:
+                return f"/tmp/{p1}"
 
     @staticmethod
     def to_datetime(epoch: [int, float]) -> datetime.datetime:
