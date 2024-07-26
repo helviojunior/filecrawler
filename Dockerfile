@@ -54,6 +54,7 @@ RUN python3 -m pip install -U pip && \
     wget -nv -O "/tmp/apktool.jar" "https://github.com/iBotPeaches/Apktool/releases/download/v$VER/apktool_$VER.jar" && \
     mv "/tmp/apktool.jar" "./installer/filecrawler/libs/bin/" && \
     python3 -m pip install -U installer/ && \
+    filecrawler -h  && \
     mkdir -p /u01/ && mkdir /u02/ && chmod -R 777 /u0{1,2}/ && \
     ln -s /u01/ /root/.filecrawler && \
     rm -rf /tmp/*
