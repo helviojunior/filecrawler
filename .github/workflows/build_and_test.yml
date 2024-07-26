@@ -5,8 +5,25 @@ name: Test Build
 on:
     push:
       branches: [ main ]
+      paths-ignore:
+        - .gitignore
+        - README.md
+        - LICENSE
+        - TODO
+        - filecrawler/__meta__.py
+        - .github/workflows/build_and_test.yml
+        - .github/workflows/build_and_publish.yml
+
     pull_request:
       branches: [ main ]
+      paths-ignore:
+        - .gitignore
+        - README.md
+        - LICENSE
+        - TODO
+        - filecrawler/__meta__.py
+        - .github/workflows/build_and_test.yml
+        - .github/workflows/build_and_publish.yml
 
 env:
   TEST_TAG: filecrawler:test

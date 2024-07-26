@@ -7,6 +7,9 @@ on:
   release:
     types: [published]
 
+env:
+  LATEST_TAG: filecrawler:latest
+
 jobs:
   lint:
     name: Check syntaxs errors and warnings
@@ -73,9 +76,35 @@ jobs:
         run: |
           python setup.py sdist
 
+  docker_build:
+    name: Check docker build and run
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          load: true
+          push: true
+          tags: ${{ env.LATEST_TAG }}
+
+      - name: Test
+        run: |
+          docker run --rm ${{ env.LATEST_TAG }} -h
+
   publish:
     name: Publish on Live Environment
-    needs: build
+    needs: docker_build
     runs-on: ubuntu-latest
     if:
       github.event_name == 'push' || github.event.pull_request.head.repo.full_name !=
