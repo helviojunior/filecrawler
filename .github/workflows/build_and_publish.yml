@@ -1,7 +1,7 @@
 # GitHub Action workflow to build and run filecrawler's tests
 #
 
-name: PyPI Build filecrawler
+name: Filecrawler release build
 
 on:
   release:
