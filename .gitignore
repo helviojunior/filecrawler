@@ -21,6 +21,7 @@
 #*.tar
 *.zip
 *.restore
+*.jar
 
 # Logs and databases #
 ######################
@@ -54,6 +55,7 @@ tmp_test.py
 #################
 sources
 sources/*
+**/bin/*.jar
 
 # Config Files #
 #################
