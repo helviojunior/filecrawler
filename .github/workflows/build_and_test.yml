@@ -123,7 +123,7 @@ jobs:
           steps.checkurls.outputs.BINUTILS_URL == ''
         uses: actions/upload-artifact@v2
         with:
-          name: filecrawler_extra_libs
+          name: filecrawler_extra_libs.zip
           path: /tmp/filecrawler_extra_libs.zip
           retention-days: 3
 
@@ -180,7 +180,7 @@ jobs:
 
       - name: Copy binaries
         run: |
-          mkdir ./filecrawler/libs/bin/
+          mkdir -p ./filecrawler/libs/bin/
           unzip -o ${{steps.download.outputs.download-path}}/filecrawler_extra_libs.zip -d ./filecrawler/libs/bin/
           echo "" > ./filecrawler/libs/bin/__init__.py
 
