@@ -60,6 +60,8 @@ class FileCrawler(object):
             Color.pl('{!} {O}recommended app(s) were not found')
             Color.pl('{!} {O}filecrawler may not work as expected{W}')
 
+        FileCrawler.get_external_libs()
+
     def run(self):
 
         try:
@@ -67,7 +69,6 @@ class FileCrawler(object):
             timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             Logger.pl('{+} {C}start time {O}%s{W}' % timestamp)
 
-            FileCrawler.get_external_libs()
             FileCrawler.load_tika()
 
             # Execute the specific actions
