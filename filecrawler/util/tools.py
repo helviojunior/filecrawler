@@ -195,9 +195,11 @@ class Tools:
     @staticmethod
     def gettempdir(prefix: str = None) -> str:
         if prefix is None:
-            tmp = tempfile.gettempdir()
+            #tmp = tempfile.gettempdir()
+            tmp = tempfile.TemporaryDirectory().name
         else:
             tmp = tempfile.TemporaryDirectory(prefix=prefix).name
+
         try:
             path = Path(str(tmp))
             path.mkdir(parents=True)
@@ -205,13 +207,26 @@ class Tools:
                 return str(tmp)
         except Exception as e:
             p = platform.system().lower()
+            rnd = Tools.random_generator(10)
             if p == 'darwin':
                 p = 'macosx'
-            p1 = f'{prefix}' if prefix is not None else ''
+            p1 = f'{prefix}{rnd}' if prefix is not None else f'tmp{rnd}'
             if p == 'windows':
-                return f"c:\\windows\\temp\\{p1}"
+                tmp = f"c:\\windows\\temp\\{p1}\\"
+            elif p == 'macosx':
+                tmp = f"/private/tmp/{p1}/"
             else:
-                return f"/tmp/{p1}"
+                tmp = f"/tmp/{p1}/"
+
+        try:
+            path = Path(str(tmp))
+            path.mkdir(parents=True)
+            if os.path.isdir(tmp):
+                return str(tmp)
+        except Exception as e:
+            raise Exception('Cannot create temp path', e)
+
+        return tmp
 
     @staticmethod
     def to_datetime(epoch: [int, float]) -> datetime.datetime:
