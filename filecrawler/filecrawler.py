@@ -103,7 +103,7 @@ class FileCrawler(object):
 
         if not os.path.isfile(os.path.join(Configuration.lib_path, 'bin', 'tika-server.jar')):
 
-            Color.pl('{+} {GR}External Libs not found, trying to get last release.{W}')
+            Color.pl('{+} {GR}External Libs not found, trying to get last release.{W}\n')
             tmp = os.path.join(Tools.gettempdir(), 'libs.zip')
 
             r = requests.get(
