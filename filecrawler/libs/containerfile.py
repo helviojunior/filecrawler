@@ -1,8 +1,11 @@
 import datetime
 import hashlib
 import os
+import re
 import tempfile
+import pimht
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Optional, Union
 
 from filecrawler.util.tools import Tools
@@ -22,7 +25,8 @@ class ContainerFile(object):
         dict(name='bz2', extensions=['bz2'], mime=['application/x-bzip2']),
         dict(name='gz', extensions=['gz'], mime=['application/gzip']),
         dict(name='7z', extensions=['7z'], mime=['application/x-7z-compressed']),
-        dict(name='eml', extensions=['eml', 'mht'], mime=['message/rfc822']),
+        dict(name='eml', extensions=['eml'], mime=['message/rfc822']),
+        dict(name='mht', extensions=['mht', 'mhtml'], mime=[]),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
         dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive'])
@@ -94,6 +98,66 @@ class ContainerFile(object):
             return Path(self._temp_path)
 
         return None
+
+    def extract_mht(self) -> bool:
+        from filecrawler.config import Configuration
+        if not Configuration.extract_files:
+            return False
+
+        self.create_folder()
+
+        try:
+            with open(str(self._file.path), "r") as f:
+                f_data = f.read()
+
+            try:
+                if match := re.search(r"(;[ \r\n\t]{0,8})boundary=(['\"])([^'\"]+)\1", f_data):
+                    f_data = f_data.replace(match.group(2), ";")
+            except:
+                pass
+
+            try:
+                mhtml = pimht.from_string(f_data)
+                for part in mhtml:
+                    loc = part.headers.get('Content-Location', '')
+                    output_filename = None
+                    try:
+                        url = urlparse(loc)
+                        p = Path(url.path)
+                        output_filename = str(p).lstrip("./\\")
+                    except:
+                        pass
+
+                    if output_filename is None:
+                        output_filename = Tools.random_generator(size=10) + Tools.guess_extensions(part.raw)
+
+                    full_name = os.path.join(str(self._temp_path), output_filename)
+
+                    try:
+                        p1 = Path(full_name).parent
+                        if str(p1) != str(self._temp_path):
+                            os.makedirs(p1, exist_ok=True)
+                    except:
+                        pass
+
+                    with open(full_name, "wb") as of:
+                        try:
+                            of.write(part.raw)
+                        except TypeError:
+                            print("Couldn't get payload for %s" % output_filename)
+
+            except:
+                full_name = os.path.join(str(self._temp_path), 'body.txt')
+                with open(full_name, "w") as of:
+                    try:
+                        of.write(f_data)
+                    except:
+                        pass
+
+            return True
+        except Exception as e:
+            Tools.print_error(e)
+            return False
 
     def extract_eml(self) -> bool:
         from filecrawler.config import Configuration
