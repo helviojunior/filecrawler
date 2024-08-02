@@ -22,7 +22,7 @@ class ContainerFile(object):
         dict(name='bz2', extensions=['bz2'], mime=['application/x-bzip2']),
         dict(name='gz', extensions=['gz'], mime=['application/gzip']),
         dict(name='7z', extensions=['7z'], mime=['application/x-7z-compressed']),
-        dict(name='eml', extensions=['eml'], mime=['message/rfc822']),
+        dict(name='eml', extensions=['eml', 'mht'], mime=['message/rfc822']),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
         dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive'])
