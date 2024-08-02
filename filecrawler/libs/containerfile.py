@@ -111,13 +111,15 @@ class ContainerFile(object):
                 f_data = f.read()
 
             try:
-                if match := re.search(r"(;[ \r\n\t]{0,8})boundary=(['\"])([^'\"]+)\1", f_data):
-                    f_data = f_data.replace(match.group(2), ";")
+                if match := re.search(r"(;[ \r\n\t]{0,8})boundary=['\"][^'\"]+", f_data,
+                                      flags=re.MULTILINE | re.IGNORECASE):
+                    f_data = f_data.replace(match.group(0), match.group(0).replace(match.group(1), ';'))
             except:
                 pass
 
             try:
                 mhtml = pimht.from_string(f_data)
+
                 for part in mhtml:
                     loc = part.headers.get('Content-Location', '')
                     output_filename = None
@@ -146,7 +148,8 @@ class ContainerFile(object):
                         except TypeError:
                             print("Couldn't get payload for %s" % output_filename)
 
-            except:
+            except Exception as e:
+                Tools.print_error(e)
                 full_name = os.path.join(str(self._temp_path), 'body.txt')
                 with open(full_name, "w") as of:
                     try:
