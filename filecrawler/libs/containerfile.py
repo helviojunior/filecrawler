@@ -31,6 +31,9 @@ class ContainerFile(object):
         dict(name='apk', extensions=['apk'], mime=[]),
         dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive'])
     ]
+    _false_positive = [
+        'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'xlsm', 'xltm', 'xlsb'
+    ]
 
     def __init__(self, file_path: File):
         self._file = file_path
@@ -66,7 +69,8 @@ class ContainerFile(object):
 
         return any([
             x for x in ContainerFile._defs
-            if file.extension in x.get('extensions', []) or file.mime in x.get('mime', [])
+            if (file.extension in x.get('extensions', []) or file.mime in x.get('mime', []))
+            and file.extension.lower() not in ContainerFile._false_positive
         ])
 
     def create_folder(self):
