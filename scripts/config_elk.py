@@ -26,6 +26,7 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
         'http.port': 9200,
         'cluster.name': 'filecrawler',
         'node.name': 'elk',
+        'cluster.initial_master_nodes': [ 'elk' ],
         'path.data': '/u01/es_data/',
         'cluster.routing.allocation.disk.watermark.high.max_headroom': '6gb',
         'cluster.routing.allocation.disk.watermark.flood_stage.max_headroom': '6gb',
