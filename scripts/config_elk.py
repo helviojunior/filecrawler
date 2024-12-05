@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import yaml
+import os
 
 
 class CustomDumper(yaml.Dumper):
@@ -26,7 +27,7 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
         'http.port': 9200,
         'cluster.name': 'filecrawler',
         'node.name': 'elk',
-        'cluster.initial_master_nodes': [ 'elk' ],
+        'cluster.initial_master_nodes': ['elk'],
         'path.data': '/u01/es_data/',
         'cluster.routing.allocation.disk.watermark.high.max_headroom': '6gb',
         'cluster.routing.allocation.disk.watermark.flood_stage.max_headroom': '6gb',
@@ -40,20 +41,21 @@ with open('/etc/elasticsearch/elasticsearch.yml', 'r') as f:
 with open('/etc/elasticsearch/elasticsearch.yml', 'w') as f:
     yaml.dump(data, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
 
-with open('/opt/kibana/config/kibana.yml', 'r') as f:
-    kibana = dict(yaml.load(f, Loader=yaml.FullLoader))
-    kibana.update({
-        'server.host': '0.0.0.0',
-        'xpack.reporting.kibanaServer.hostname': 'localhost',
-        'server.maxPayload': 104857600,
-        'savedObjects.maxImportPayloadBytes': 104857600,
-        'server.name': 'FileCrawler',
-        'elasticsearch.hosts': ["http://localhost:9200"],
-        'i18n.locale': 'en',
-        'server.port': 80,
-    })
+for kb in ["/opt/kibana/config/kibana.yml", "/etc/kibana/kibana.yml"]:
+    if os.path.exists(kb):
+        with open(kb, 'r') as f:
+            kibana = dict(yaml.load(f, Loader=yaml.FullLoader))
+            kibana.update({
+                'server.host': '0.0.0.0',
+                'xpack.reporting.kibanaServer.hostname': 'localhost',
+                'server.maxPayload': 104857600,
+                'savedObjects.maxImportPayloadBytes': 104857600,
+                'server.name': 'FileCrawler',
+                'elasticsearch.hosts': ["http://localhost:9200"],
+                'i18n.locale': 'en',
+                'server.port': 80,
+            })
 
-
-with open('/opt/kibana/config/kibana.yml', 'w') as f:
-    yaml.dump(kibana, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
+        with open(kb, 'w') as f:
+            yaml.dump(kibana, f, sort_keys=False, default_flow_style=False, Dumper=CustomDumper)
 

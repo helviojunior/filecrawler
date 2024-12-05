@@ -175,6 +175,14 @@ $ filecrawler --create-config -v
 $ filecrawler --path /u02/ -T 30 -v --elastic --index-name filecrawler 
 ```
 
+## Using Docker with remote server using ssh forwarding
+```bash
+$ mkdir -p $HOME/.filecrawler/
+$ docker run -v "$HOME/.ssh/":/root/.ssh/ -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it --entrypoint /bin/bash "filecrawler:client"
+$ ssh -o StrictHostKeyChecking=no -Nf -L 127.0.0.1:9200:127.0.0.1:9200 user@server_ip
+$ filecrawler --create-config -v
+$ filecrawler --path /u02/ -T 30 --no-db -v --elastic --index-name filecrawler 
+```
 
 
 # Credits
