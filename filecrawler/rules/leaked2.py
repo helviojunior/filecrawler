@@ -5,12 +5,13 @@ from filecrawler._exceptions import FalsePositiveError
 from filecrawler.rulebase import RuleBase
 
 
-class Leaked1(RuleBase):
+#class Leaked2(RuleBase):
+class Leaked2(object):
 
     def __init__(self):
         super().__init__('leaked2', 'Leaked Credentials 2')
 
-        self._regex = re.compile(r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:]{1,1024}):([^\n:]{1,1024}):([\S]{1,1024})")
+        self._regex = re.compile(r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:\|]{1,1024})[:\|]([^\n:\|]{1,1024})[:\|]([\S]{1,1024})")
         # (?![A-Za-z0-9:._-])
         self._keywords = ["://"]
         #self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha|pwd)([>]{0,1})@")
@@ -20,7 +21,10 @@ class Leaked1(RuleBase):
         self._tps = [
             "https://dominio.com.br/cadastro:meuemail@mydomain.com:@Pass123",
             "https://dominio.com.br/cadastro:meuemail@mydomain.com:@Pass:123",
-            "https://dominio.com.br:meu.email@br.mydomain.com:123456"
+            "https://dominio.com.br:meu.email@br.mydomain.com:123456",
+            "https://dominio.com.br/cadastro|meuemail@mydomain.com|@Pass123",
+            "https://dominio.com.br/cadastro|meuemail@mydomain.com|@Pass:123",
+            "https://dominio.com.br|meu.email@br.mydomain.com|123456"
         ]
 
         self._fps = [
@@ -32,7 +36,7 @@ class Leaked1(RuleBase):
 
         try:
             p = re.compile(
-                r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:]{1,1024}):([^:]{1,1024}):([\S]{1,1024})")
+                r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:\|]{1,1024})[:\|]([^:]{1,1024})[:\|]([\S]{1,1024})")
 
             severity = 100
 
