@@ -10,6 +10,8 @@ from filecrawler.config import Configuration
 from filecrawler.crawlerbase import CrawlerBase
 from filecrawler.libs.color import Color
 from elasticsearch import Elasticsearch
+from urllib.parse import urlparse
+import re
 import requests
 import elastic_transport
 
@@ -21,9 +23,12 @@ class Elastic(CrawlerBase):
     _CREDS_WHITE_LIST = []
     _CONTROL_KEYS = ["indexing_date", "fingerprint", "filename", "extension",
                       "mime_type", "file_size", "path_virtual", "path_real"]
+    _regex = None
 
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
+        self._regex = re.compile(
+            r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:\|]{1,1024})[:\|]([^\n:\|]{1,1024})[:\|]([\S]{1,1024})")
 
     def add_flags(self, flags: _ArgumentGroup):
         pass
@@ -158,6 +163,32 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
+        if not es.indices.exists(index=Configuration.index_name + '_urls'):
+            request_body = {
+                "settings": {
+                    "number_of_replicas": 1,
+                    "index": {"highlight.max_analyzed_offset": 10000000}
+                },
+
+                'mappings': {
+                    'properties': {
+                        'indexing_date': {'type': 'date'},
+                        'fingerprint': {'type': 'keyword'},
+                        'filename': {'type': 'text'},
+                        'scheme': {'type': 'keyword'},
+                        'host': {'type': 'keyword'},
+                        'port': {'type': 'long'},
+                        'path': {'type': 'text'},
+                        'url': {'type': 'text'},
+                    }
+                }
+            }
+
+            es.indices.create(
+                index=Configuration.index_name + '_urls',
+                body=request_body
+            )
+
         if not es.indices.exists(index='.ctrl_' + Configuration.index_name):
             request_body = {
                 "settings": {
@@ -253,6 +284,9 @@ class Elastic(CrawlerBase):
                         if not Configuration.continue_on_error:
                             raise Exception(f'Cannot insert elasticsearch data: {res}')
 
+                for url in self.get_urliter(data.get('content', '')):
+                    es.index(index=Configuration.index_name + '_urls', id=url['fingerprint'], document=url)
+
                 es.index(index='.ctrl_' + Configuration.index_name, id=id, document={
                     k: v
                     for k, v in data.items()
@@ -262,9 +296,35 @@ class Elastic(CrawlerBase):
         except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             raise IntegrationError(e)
 
+    def get_urliter(self, text):
+        pos = 0
+        while m := self._regex.search(text, pos):
+            pos = m.start() + 1
+            yield from Elastic._text_to_urlobj(m[0])
 
-
-
+    @staticmethod
+    def _text_to_urlobj(url_text):
+        try:
+            up = urlparse(url_text)
+            data = {
+                'scheme': up.scheme.lower(),
+                'host': up.netloc,
+                'path': up.path,
+                'url': f'{up.scheme}://{up.netloc}/{up.path}'.lstrip('/').lower()
+            }
+            data['fingerprint'] = data['url']
+            if ':' in up.netloc:
+                h, p = up.netloc.split(':', 1)
+                data['host'] = h
+                data['port'] = p
+            else:
+                if data['scheme'] == 'https':
+                    data['port'] = 443
+                elif data['scheme'] == 'http':
+                    data['port'] = 80
+            yield data
+        except:
+            pass
 
 
 
