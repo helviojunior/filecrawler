@@ -98,6 +98,15 @@ class Tools:
 
         return str(text).strip()
 
+
+    @staticmethod
+    def decode_unicode(text):
+        text = unicodedata.normalize('NFD', text) \
+            .encode('ascii', 'ignore').decode('unicode-escape')
+
+        return str(text).strip()
+
+
     @staticmethod
     def get_tabulated(data: list) -> str:
 

@@ -28,7 +28,7 @@ class Elastic(CrawlerBase):
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
         self._regex = re.compile(
-            r"(?i)([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n:\|]{1,1024})[:\|]([^\n:\|]{1,1024})[:\|]([\S]{1,1024})")
+            r"(?i)(https?:\/\/[^ '\"<>,;?&\(\)\{\}]*)")
 
     def add_flags(self, flags: _ArgumentGroup):
         pass
@@ -285,7 +285,10 @@ class Elastic(CrawlerBase):
                             raise Exception(f'Cannot insert elasticsearch data: {res}')
 
                 for url in self.get_urliter(data.get('content', '')):
-                    es.index(index=Configuration.index_name + '_urls', id=url['fingerprint'], document=url)
+                    es.index(index=Configuration.index_name + '_urls',
+                             id=url['fingerprint'],
+                             document={**url, **{'indexing_date': data['indexing_date']}}
+                             )
 
                 es.index(index='.ctrl_' + Configuration.index_name, id=id, document={
                     k: v
@@ -297,9 +300,11 @@ class Elastic(CrawlerBase):
             raise IntegrationError(e)
 
     def get_urliter(self, text):
+        text = text.encode('utf-8', 'ignore').decode('unicode-escape')
+        text = text.replace("\"", "\n").replace("'", "\n")
         pos = 0
         while m := self._regex.search(text, pos):
-            pos = m.start() + 1
+            pos = m.end()
             yield from Elastic._text_to_urlobj(m[0])
 
     @staticmethod
@@ -310,7 +315,7 @@ class Elastic(CrawlerBase):
                 'scheme': up.scheme.lower(),
                 'host': up.netloc,
                 'path': up.path,
-                'url': f'{up.scheme}://{up.netloc}/{up.path}'.lstrip('/').lower()
+                'url': f'{up.scheme}://{up.netloc}{up.path}'.lstrip('/').lower()
             }
             data['fingerprint'] = data['url']
             if ':' in up.netloc:
@@ -323,7 +328,8 @@ class Elastic(CrawlerBase):
                 elif data['scheme'] == 'http':
                     data['port'] = 80
             yield data
-        except:
+        except Exception as e:
+            print(e)
             pass
 
 
