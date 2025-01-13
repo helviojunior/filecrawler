@@ -52,7 +52,7 @@ package_data.update(
 #If you use both include_package_data and package_data, files specified with package_data will not be automatically included in sdists; you must instead list them in your MANIFEST.in
 
 setup(
-    name=meta["__title__"],
+    name=meta["__title__"].lower(),
     version=meta["__version__"],
     description=meta["__description__"],
     long_description=readme,
@@ -82,6 +82,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Security",
