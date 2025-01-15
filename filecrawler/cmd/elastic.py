@@ -382,7 +382,7 @@ class Elastic(CrawlerBase):
             if (idx := email_text.rfind('@')) != -1 and idx < len(email_text):
                 h = email_text[idx+1:]
                 if h is not None and len(h.strip()) > 0:
-                    data['host'] = h
+                    data['domain'] = h
 
         except Exception as e:
             print(e)
