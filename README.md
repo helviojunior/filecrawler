@@ -151,7 +151,7 @@ Goes to path to be indexed and run the commands bellow
 ```bash
 $ mkdir -p $HOME/.filecrawler/
 $ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --create-config -v
-$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --path /u02/ -T 30 -v --elastic --index-name filecrawler
+$ docker run -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:client" --path /u02/ --no-db -T 30 -v --elastic --index-name filecrawler
 ```
 
 
