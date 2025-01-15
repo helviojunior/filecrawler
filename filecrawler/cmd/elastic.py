@@ -23,12 +23,15 @@ class Elastic(CrawlerBase):
     _CREDS_WHITE_LIST = []
     _CONTROL_KEYS = ["indexing_date", "fingerprint", "filename", "extension",
                       "mime_type", "file_size", "path_virtual", "path_real"]
-    _regex = None
+    _regex_url = None
+    _regex_email = None
 
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
-        self._regex = re.compile(
+        self._regex_url = re.compile(
             r"(?i)(https?:\/\/[^ '\"<>,;?&\(\)\{\}]*)")
+        self._regex_email = re.compile(
+            r"(?i)(?i)(?:[a-z0-9+!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
 
     def add_flags(self, flags: _ArgumentGroup):
         pass
@@ -173,7 +176,6 @@ class Elastic(CrawlerBase):
                 'mappings': {
                     'properties': {
                         'indexing_date': {'type': 'date'},
-                        'fingerprint': {'type': 'keyword'},
                         'filename': {'type': 'text'},
                         'scheme': {'type': 'keyword'},
                         'host': {'type': 'keyword'},
@@ -186,6 +188,28 @@ class Elastic(CrawlerBase):
 
             es.indices.create(
                 index=Configuration.index_name + '_urls',
+                body=request_body
+            )
+
+        if not es.indices.exists(index=Configuration.index_name + '_emails'):
+            request_body = {
+                "settings": {
+                    "number_of_replicas": 1,
+                    "index": {"highlight.max_analyzed_offset": 10000000}
+                },
+
+                'mappings': {
+                    'properties': {
+                        'indexing_date': {'type': 'date'},
+                        'filename': {'type': 'text'},
+                        'email': {'type': 'keyword'},
+                        'host': {'type': 'keyword'}
+                    }
+                }
+            }
+
+            es.indices.create(
+                index=Configuration.index_name + '_emails',
                 body=request_body
             )
 
@@ -285,10 +309,34 @@ class Elastic(CrawlerBase):
                             raise Exception(f'Cannot insert elasticsearch data: {res}')
 
                 for url in self.get_urliter(data.get('content', '')):
-                    es.index(index=Configuration.index_name + '_urls',
-                             id=url['fingerprint'],
-                             document={**url, **{'indexing_date': data['indexing_date']}}
-                             )
+                    if url.get('url', None) is not None:
+                        es.index(index=Configuration.index_name + '_urls',
+                                 id=url['url'],
+                                 document={
+                                     **url,
+                                     **{
+                                         'indexing_date': data['indexing_date'],
+                                         'filename': data.get('filename', ''),
+                                         'path_real': data.get('path_real', ''),
+                                         'path_virtual': data.get('path_virtual', '')
+                                     }
+                                    }
+                                 )
+
+                for email in self.get_emailiter(data.get('content', '')):
+                    if email.get('email', None) is not None:
+                        es.index(index=Configuration.index_name + '_emails',
+                                 id=email['email'],
+                                 document={
+                                     **email,
+                                     **{
+                                         'indexing_date': data['indexing_date'],
+                                         'filename': data.get('filename', ''),
+                                         'path_real': data.get('path_real', ''),
+                                         'path_virtual': data.get('path_virtual', '')
+                                     }
+                                    }
+                                 )
 
                 es.index(index='.ctrl_' + Configuration.index_name, id=id, document={
                     k: v
@@ -299,13 +347,44 @@ class Elastic(CrawlerBase):
         except (elastic_transport.ConnectionError, requests.exceptions.ConnectionError) as e:
             raise IntegrationError(e)
 
+    def get_emailiter(self, text):
+        text = text.encode('utf-8', 'ignore').decode('unicode-escape')
+        text = text.replace("\"", "\n").replace("'", "\n")
+        pos = 0
+        while m := self._regex_email.search(text, pos):
+            pos = m.end()
+            yield from Elastic._text_to_emailobj(m[0])
+
     def get_urliter(self, text):
         text = text.encode('utf-8', 'ignore').decode('unicode-escape')
         text = text.replace("\"", "\n").replace("'", "\n")
         pos = 0
-        while m := self._regex.search(text, pos):
+        while m := self._regex_url.search(text, pos):
             pos = m.end()
             yield from Elastic._text_to_urlobj(m[0])
+
+    @staticmethod
+    def _text_to_emailobj(email_text):
+        if email_text is None:
+            yield {}
+
+        email_text = email_text.lower().strip('"\' ()[]{}\r\n\t')
+        data = {
+            'email': email_text,
+            'host': '',
+        }
+
+        try:
+            if (idx := email_text.rfind('@')) != -1 and idx < len(email_text):
+                h = email_text[idx+1:]
+                if h is not None and len(h.strip()) > 0:
+                    data['host'] = h
+
+        except Exception as e:
+            print(e)
+            pass
+
+        yield data
 
     @staticmethod
     def _text_to_urlobj(url_text):

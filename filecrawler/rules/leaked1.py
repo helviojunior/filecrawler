@@ -22,6 +22,7 @@ class Leaked1(RuleBase):
         ]
 
         self._fps = [
+            "Url: http://domain.com.br/login\nUSER: \nPASS: "
         ]
 
     def post_processor(self, original_data: str, found: str) -> dict:
