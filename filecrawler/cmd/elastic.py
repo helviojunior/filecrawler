@@ -400,7 +400,6 @@ class Elastic(CrawlerBase):
                 'path': up.path,
                 'url': f'{up.scheme}://{up.netloc}{up.path}'.lstrip('/').lower()
             }
-            data['fingerprint'] = data['url']
             if ':' in up.netloc:
                 h, p = up.netloc.split(':', 1)
                 data['host'] = h
