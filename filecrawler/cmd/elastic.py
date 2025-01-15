@@ -177,6 +177,8 @@ class Elastic(CrawlerBase):
                     'properties': {
                         'indexing_date': {'type': 'date'},
                         'filename': {'type': 'text'},
+                        'path_virtual': {'type': 'text'},
+                        'path_real': {'type': 'text'},
                         'scheme': {'type': 'keyword'},
                         'host': {'type': 'keyword'},
                         'port': {'type': 'long'},
@@ -202,8 +204,10 @@ class Elastic(CrawlerBase):
                     'properties': {
                         'indexing_date': {'type': 'date'},
                         'filename': {'type': 'text'},
+                        'path_virtual': {'type': 'text'},
+                        'path_real': {'type': 'text'},
                         'email': {'type': 'keyword'},
-                        'host': {'type': 'keyword'}
+                        'domain': {'type': 'keyword'}
                     }
                 }
             }
@@ -371,7 +375,7 @@ class Elastic(CrawlerBase):
         email_text = email_text.lower().strip('"\' ()[]{}\r\n\t')
         data = {
             'email': email_text,
-            'host': '',
+            'domain': '',
         }
 
         try:
