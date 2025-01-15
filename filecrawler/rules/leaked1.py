@@ -10,7 +10,7 @@ class Leaked1(RuleBase):
     def __init__(self):
         super().__init__('leaked1', 'Leaked Credentials 1')
 
-        self._regex = re.compile(r"(?i)([a-zA-Z0-9_])[: ]{1,3}([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n]{1,1024})\n[ \t]{0,5}(user|username|login|email)[ :]{1,3}([^\n]{1,1024})\n[ \t]{0,5}(pass|password|token|secret|senha|pwd)[ :]{1,3}([^\n]{1,1024})", flags=re.RegexFlag.MULTILINE)
+        self._regex = re.compile(r"(?i)([a-zA-Z0-9_]+)[: ]{1,3}([a-zA-Z0-9_-]{2,30}:\/\/[^\"'\n]{1,1024})\n[ \t]{0,5}(user|username|login|email)[ :]{1,3}([^\n]{1,1024})\n[ \t]{0,5}(pass|password|token|secret|senha|pwd)[ :]{1,3}([^\n]{1,1024})", flags=re.RegexFlag.MULTILINE)
         # (?![A-Za-z0-9:._-])
         self._keywords = ["://"]
         #self._fp_regex = re.compile(r"[a-zA-Z0-9_-]{2,30}://([<]{0,1})(user|username|usuario)([>]{0,1}):([<]{0,1})(pass|password|token|secret|senha|pwd)([>]{0,1})@")
