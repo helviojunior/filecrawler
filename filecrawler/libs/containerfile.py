@@ -122,7 +122,7 @@ class ContainerFile(object):
                     while rows <= total:
                         d_tmp = {
                             'table': t['table_name'],
-                            'offset': f"{cnt:06}",
+                            'offset': cnt,
                             'total': total,
                             'data': rows[cnt: cnt + 1000]
                         }
