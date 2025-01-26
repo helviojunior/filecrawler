@@ -119,7 +119,7 @@ class ContainerFile(object):
                     total = len(rows)
                     rc = 0
                     cnt = 0
-                    while rows <= total:
+                    while cnt <= total:
                         d_tmp = {
                             'table': t['table_name'],
                             'offset': cnt,
