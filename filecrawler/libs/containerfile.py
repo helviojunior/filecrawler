@@ -4,6 +4,7 @@ import os
 import re
 import tempfile
 import pimht
+import json
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Optional, Union
@@ -12,6 +13,7 @@ from filecrawler.util.tools import Tools
 
 from filecrawler.libs.file import File
 from filecrawler.libs.process import Process
+from filecrawler.libs.database import Database
 import shutil
 
 
@@ -29,7 +31,8 @@ class ContainerFile(object):
         dict(name='mht', extensions=['mht', 'mhtml'], mime=[]),
         #dict(name='tar', extensions=['tar'], mime=['application/x-tar']),
         dict(name='apk', extensions=['apk'], mime=[]),
-        dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive'])
+        dict(name='jar', extensions=['jar', 'war'], mime=['application/java-archive']),
+        dict(name='sqlite3', extensions=[], mime=['application/vnd.sqlite3'])
     ]
     _false_positive = [
         'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'odt', 'xlsm', 'xltm', 'xlsb'
@@ -102,6 +105,55 @@ class ContainerFile(object):
             return Path(self._temp_path)
 
         return None
+
+    def extract_sqlite3(self) -> bool:
+        from filecrawler.config import Configuration
+        from filecrawler.util.tools import Tools
+        self.create_folder()
+
+        try:
+            with Database(db_name=str(self._file.path), auto_create=False) as db:
+                tables = db.select_raw('SELECT m.tbl_name AS table_name FROM sqlite_master AS m', args={})
+                for t in tables:
+                    rows = db.select(t['table_name'], **{})
+                    total = len(rows)
+                    rc = 0
+                    cnt = 0
+                    while rows <= total:
+                        d_tmp = {
+                            'table': t['table_name'],
+                            'offset': f"{cnt:06}",
+                            'total': total,
+                            'data': rows[cnt: cnt + 1000]
+                        }
+                        cnt += len(d_tmp['data'])
+                        n1 = Tools.sanitize_filename(t['table_name'])
+                        full_name = os.path.join(str(self._temp_path), f"{n1}_{rc:06}.json")
+
+                        try:
+                            p1 = Path(full_name).parent
+                            if str(p1) != str(self._temp_path):
+                                os.makedirs(p1, exist_ok=True)
+                        except:
+                            pass
+
+                        with open(full_name, "wb") as of:
+                            try:
+                                data = json.dumps(d_tmp,
+                                                  default=Tools.json_serial,
+                                                  sort_keys=False,
+                                                  indent=2)
+                                of.write(data.encode("UTF-8"))
+                            except TypeError:
+                                print("Couldn't get payload for %s" % full_name)
+
+                        rc += 1
+
+            return True
+        except Exception as e:
+            if Configuration.verbose >= 3:
+                Tools.print_error(e)
+            return False
 
     def extract_mht(self) -> bool:
         from filecrawler.config import Configuration
