@@ -124,7 +124,7 @@ class ContainerFile(object):
                             'table': t['table_name'],
                             'offset': cnt,
                             'total': total,
-                            'data': rows[cnt: cnt + 1000]
+                            'data': rows[cnt: cnt + 100]
                         }
                         cnt += len(d_tmp['data'])
                         n1 = Tools.sanitize_filename(t['table_name'])
