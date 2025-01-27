@@ -147,6 +147,12 @@ class ContainerFile(object):
                             except TypeError:
                                 print("Couldn't get payload for %s" % full_name)
 
+                        # Try to update file time from real file time
+                        try:
+                            os.utime(full_name, (self._file.stats.st_ctime, self._file.stats.st_ctime))
+                        except:
+                            pass
+
                         rc += 1
 
             return True

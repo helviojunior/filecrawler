@@ -64,6 +64,10 @@ class File(CPath):
         return self._fingerprint
 
     @property
+    def stats(self) -> os.stat_result:
+        return self._stats
+
+    @property
     def size(self) -> int:
         return self._stats.st_size
 
