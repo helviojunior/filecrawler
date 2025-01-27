@@ -118,15 +118,24 @@ class ContainerFile(object):
                     rows = db.select(t['table_name'], **{})
                     total = len(rows)
                     rc = 0
-                    cnt = 0
-                    while cnt < total:
+                    offset = 0
+                    c_size = sum([len(h) for h in rows[0].keys()])
+                    while offset < total:
+                        p_size = 0
+
                         d_tmp = {
                             'table': t['table_name'],
-                            'offset': cnt,
+                            'offset': offset,
                             'total': total,
-                            'data': rows[cnt: cnt + 100]
+                            'data': []
                         }
-                        cnt += len(d_tmp['data'])
+                        for i, r in enumerate(rows):
+                            if i >= offset and p_size <= 1073741824:  # 1 MB
+                                p_size += c_size
+                                p_size += sum([len(d) for d in r.values()])
+                                d_tmp['data'] += [r]
+
+                        offset += len(d_tmp['data'])
                         n1 = Tools.sanitize_filename(t['table_name'])
                         full_name = os.path.join(str(self._temp_path), f"{n1}_{rc:06}.json")
 
