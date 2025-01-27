@@ -127,6 +127,7 @@ class ContainerFile(object):
                             'table': t['table_name'],
                             'offset': offset,
                             'total': total,
+                            'count': 0,
                             'data': []
                         }
                         for i, r in enumerate(rows):
@@ -135,7 +136,8 @@ class ContainerFile(object):
                                 p_size += sum([len(str(d)) if d is not None else 10 for d in r.values()])
                                 d_tmp['data'] += [r]
 
-                        offset += len(d_tmp['data'])
+                        d_tmp['count'] = len(d_tmp['data'])
+                        offset += d_tmp['count']
                         n1 = Tools.sanitize_filename(t['table_name'])
                         full_name = os.path.join(str(self._temp_path), f"{n1}_{rc:06}.json")
 
