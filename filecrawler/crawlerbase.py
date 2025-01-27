@@ -745,6 +745,6 @@ class CrawlerBase(object):
                         for k, fl in data.get('credentials', {}).items() for f in fl.get('findings', [])
                     }
         except Exception as e:
-            if Configuration.verbose >= 3:
+            if Configuration.verbose >= 5:
                 Tools.print_error(e)
             return {}

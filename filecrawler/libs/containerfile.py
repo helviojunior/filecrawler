@@ -132,7 +132,7 @@ class ContainerFile(object):
                         for i, r in enumerate(rows):
                             if i >= offset and p_size <= 1073741824:  # 1 MB
                                 p_size += c_size
-                                p_size += sum([len(str(d)) for d in r.values()])
+                                p_size += sum([len(str(d)) if d is not None else 10 for d in r.values()])
                                 d_tmp['data'] += [r]
 
                         offset += len(d_tmp['data'])
