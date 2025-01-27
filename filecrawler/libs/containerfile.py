@@ -112,7 +112,7 @@ class ContainerFile(object):
         self.create_folder()
 
         try:
-            with Database(db_name=str(self._file.path), auto_create=False) as db:
+            with Database(db_name=str(self._file.path), auto_create=False, do_backup=False) as db:
                 tables = db.select_raw('SELECT m.tbl_name AS table_name FROM sqlite_master AS m', args={})
                 for t in tables:
                     rows = db.select(t['table_name'], **{})

@@ -47,14 +47,16 @@ def connect(func):
 
 class Database(object):
     db_name = ""
+    do_bkp = True
 
     # Static value
     db_connection = None
     constraints = []
 
-    def __init__(self, auto_create=True, db_name=None):
+    def __init__(self, auto_create=True, db_name=None, do_backup=False):
 
         self.db_name = db_name
+        self.do_bkp = do_backup
 
         if not os.path.isfile(self.db_name):
             if auto_create:
@@ -291,7 +293,8 @@ class Database(object):
             except (AttributeError, ProgrammingError) as e:
                 raise Exception(f'Fail connecting to SQLite file: {self.db_name}', e)
 
-        shutil.copy(self.db_name, f'{self.db_name}.bkp')
+        if self.do_bkp:
+            shutil.copy(self.db_name, f'{self.db_name}.bkp')
 
         cursor = conn.cursor()
         # www.sqlite.org/pragma.html
