@@ -224,5 +224,7 @@ Edite o arquivo **config.yml** com os parâmetros desejados
 ### Executando
 
 ```bash
-filecrawler --index-name filecrawler --path /mnt/client_files --elastic -T 30 -v
+filecrawler --index-name filecrawler --path /mnt/client_files --no-db --elastic -T 30 -v
 ```
+
+Onde: o caminho `/mnt/client_files` deve ser alterado para o local onde os arquivos a serem indexados estão armazenados.
