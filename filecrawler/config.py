@@ -176,7 +176,10 @@ class Configuration(object):
 
         try:
             Tools.get_mime(__file__)
-        except ImportError:
+        except ImportError as e:
+            if Configuration.verbose >= 3:
+                Tools.print_error(e)
+
             Color.pl('{!} {R}error: failed to find libmagic. Check your installation{W}\r\n')
             Color.pl('     {O}Linux: apt-get install libmagic-dev{W}')
             Color.pl('     {O}MacOS: brew install libmagic{W}')
