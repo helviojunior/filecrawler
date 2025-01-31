@@ -32,53 +32,23 @@ sudo apt install elasticsearch kibana
 
 ### Configurando o ELK
 
-Edite o arquivo sudo nano /etc/elasticsearch/elasticsearch.yml alterando o bind para somente localhost
+Caso deseje utilizar as configurações padrões e otimizadas que eu utilizo, basta realizar o procedimento abaixo:
+
+Crie o diretório /u01/es_data/
 
 ```
-network.host: 127.0.0.1
-http.host: 127.0.0.1
-http.port: 9200
+mkdir -p /u01/es_data/
 ```
 
-Caso queira que o elasticsearch faça bind em todas as interfaces
-Edite o arquivo /etc/elasticsearch/elasticsearch.yml
-
-**Nota:** Esta configuração será necessária caso o crawler execute em uma maquina diferente do servidor ELK
+Posteriormente baixe e execute o script Python que realiza as configurações
 
 ```
-network.host: 127.0.0.1
-http.host: 0.0.0.0
-http.port: 9200
+cd /opt
+wget https://raw.githubusercontent.com/helviojunior/filecrawler/refs/heads/main/scripts/config_elk.py
+python3 config_elk.py
 ```
 
-#### Edite o nome do cluster
-Edite o arquivo /etc/elasticsearch/elasticsearch.yml
-
-```
-cluster.name: my-application
-node.name: node-1
-```
-
-#### Ajuste as configurações de segurança
-Edite o arquivo /etc/elasticsearch/elasticsearch.yml
-
-```
-# Enable security features
-xpack.security.enabled: false
-
-xpack.security.enrollment.enabled: false
-
-# Enable encryption for HTTP API client connections, such as Kibana, Logstash, and Agents
-xpack.security.http.ssl:
-  enabled: false
-  keystore.path: certs/http.p12
-
-# Enable encryption and mutual authentication between cluster nodes
-xpack.security.transport.ssl:
-  enabled: false
-```
-
-#### Ajuste os limites JVM
+### Ajuste os limites JVM
 
 Ajuste com em torno de 80% da memória da máquina. Edite o arquivo /etc/elasticsearch/jvm.options
 
