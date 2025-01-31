@@ -53,7 +53,7 @@ for kb in ["/opt/kibana/config/kibana.yml", "/etc/kibana/kibana.yml"]:
                 'server.name': 'FileCrawler',
                 'elasticsearch.hosts': ["http://localhost:9200"],
                 'i18n.locale': 'en',
-                'server.port': 80,
+                'server.port': 5601,
             })
 
         with open(kb, 'w') as f:

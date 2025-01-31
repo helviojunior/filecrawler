@@ -168,7 +168,7 @@ Goes to path to be indexed and run the commands bellow
 
 ```bash
 $ mkdir -p $HOME/.filecrawler/
-$ docker run -p 443:443 -p 80:80 -p 9200:9200 -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:latest"
+$ docker run -p 443:443 -p 80:5601 -p 9200:9200 -v "$HOME/.filecrawler/":/u01/ -v "$PWD":/u02/ --rm -it "filecrawler:latest"
 
 #Inside of docker run
 $ filecrawler --create-config -v
