@@ -40,6 +40,12 @@ Crie o diretório /u01/es_data/
 mkdir -p /u01/es_data/
 ```
 
+Sincronize o conteúdo atual para o novo diretório
+```
+rsync -av /var/lib/elasticsearch* /u01/es_data/
+chown -R elasticsearch:elasticsearch  /u01/es_data/
+```
+
 Posteriormente baixe e execute o script Python que realiza as configurações
 
 ```
@@ -57,14 +63,6 @@ Ajuste com em torno de 80% da memória da máquina. Edite o arquivo /etc/elastic
 -Xmx1g
 ```
 
-## Ajuste o tamanho de retorno
-
-Execute o comando abaixo
-
-```bash
-curl -X PUT "http://localhost:9200/_cluster/settings" -H "Content-Type: application/json" -d "{\"persistent\": { \"search.max_async_search_response_size\": \"100mb\"}}"
-```
-
 ### Habilite o serviço do ELK
 ```
 systemctl enable elasticsearch
@@ -73,29 +71,12 @@ systemctl enable kibana
 systemctl start kibana
 ```
 
-### Ajustando local de armazenamento
+### Ajuste o tamanho de retorno
 
-**Nota:** Este item é opcional, mas recomendado em caso de grandes armazenamentos de dados
+Execute o comando abaixo
 
-Monte o disco externo em um diretório qualquer, em nosso lab montamos em /u01/es_data/
-
-Sincronize o conteúdo atual para o novo diretório
-```
-rsync -av /var/lib/elasticsearch* /u01/es_data/
-chown -R elasticsearch:elasticsearch  /u01/es_data/
-```
-
-Edite /etc/elasticsearch/elasticsearch.yml
-
-Altere de **path.data: /var/lib/elasticsearch** para 
-
-```
-path.data: /u01/es_data/elasticsearch
-```
-
-Reinicie o serviço do elasticsearch
-```
-systemctl restart elasticsearch
+```bash
+curl -X PUT "http://localhost:9200/_cluster/settings" -H "Content-Type: application/json" -d "{\"persistent\": { \"search.max_async_search_response_size\": \"100mb\"}}"
 ```
 
 ### Testando
