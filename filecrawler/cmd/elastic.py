@@ -29,9 +29,17 @@ class Elastic(CrawlerBase):
     def __init__(self):
         super().__init__('elastic', 'Integrate to elasticsearch')
         self._regex_url = re.compile(
-            r"(?i)(https?:\/\/[^ '\"<>,;?&\(\)\{\}]*)")
+            r"(?i)(https?://[^\s]+)")
         self._regex_email = re.compile(
-            r"(?i)(?:[a-z0-9+!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")(@\|%40)(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])")
+            r"(?i)"  # Case-insensitive matching
+            r"(?:[A-Z0-9!#$%&'*+/=?^_`{|}~-]+"  # Unquoted local part
+            r"(?:\.[A-Z0-9!#$%&'*+/=?^_`{|}~-]+)*"  # Dot-separated atoms in local part
+            r"|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]"  # Quoted strings
+            r"|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")"  # Escaped characters in local part
+            r"[@|%40]"  # Separator
+            r"[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?"  # Domain name
+            r"\.(?:[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?)+"  # Top-level domain and subdomains
+        )
 
     def add_flags(self, flags: _ArgumentGroup):
         pass
