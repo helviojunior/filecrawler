@@ -43,6 +43,10 @@ FileCrawler officially supports Python 3.8+.
 ### Alert:
 * [x] Send credential found via Telegram
 
+## IntelX Parser
+
+Motivated by several reasons I decided to move IntelX specific rules to a new tool called IntelParser available at https://github.com/helviojunior/intelparser/
+
 ## Sample outputs
 
 In additional File Crawler save some images with the found leaked credentials at **~/.filecrawler/** directory like the images bellow
