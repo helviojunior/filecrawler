@@ -174,57 +174,6 @@ class Elastic(CrawlerBase):
                 body=request_body
             )
 
-        if not es.indices.exists(index=Configuration.index_name + '_urls'):
-            request_body = {
-                "settings": {
-                    "number_of_replicas": 1,
-                    "index": {"highlight.max_analyzed_offset": 10000000}
-                },
-
-                'mappings': {
-                    'properties': {
-                        'indexing_date': {'type': 'date'},
-                        'filename': {'type': 'text'},
-                        'path_virtual': {'type': 'text'},
-                        'path_real': {'type': 'text'},
-                        'scheme': {'type': 'keyword'},
-                        'host': {'type': 'keyword'},
-                        'port': {'type': 'long'},
-                        'path': {'type': 'text'},
-                        'url': {'type': 'text'},
-                    }
-                }
-            }
-
-            es.indices.create(
-                index=Configuration.index_name + '_urls',
-                body=request_body
-            )
-
-        if not es.indices.exists(index=Configuration.index_name + '_emails'):
-            request_body = {
-                "settings": {
-                    "number_of_replicas": 1,
-                    "index": {"highlight.max_analyzed_offset": 10000000}
-                },
-
-                'mappings': {
-                    'properties': {
-                        'indexing_date': {'type': 'date'},
-                        'filename': {'type': 'text'},
-                        'path_virtual': {'type': 'text'},
-                        'path_real': {'type': 'text'},
-                        'email': {'type': 'keyword'},
-                        'domain': {'type': 'keyword'}
-                    }
-                }
-            }
-
-            es.indices.create(
-                index=Configuration.index_name + '_emails',
-                body=request_body
-            )
-
         if not es.indices.exists(index='.ctrl_' + Configuration.index_name):
             request_body = {
                 "settings": {
@@ -319,36 +268,6 @@ class Elastic(CrawlerBase):
                     if res is None or res.get('_shards', {}).get('successful', 0) == 0:
                         if not Configuration.continue_on_error:
                             raise Exception(f'Cannot insert elasticsearch data: {res}')
-
-                for url in self.get_urliter(data.get('content', '')):
-                    if url.get('url', None) is not None:
-                        es.index(index=Configuration.index_name + '_urls',
-                                 id=url['url'],
-                                 document={
-                                     **url,
-                                     **{
-                                         'indexing_date': data['indexing_date'],
-                                         'filename': data.get('filename', ''),
-                                         'path_real': data.get('path_real', ''),
-                                         'path_virtual': data.get('path_virtual', '')
-                                     }
-                                    }
-                                 )
-
-                for email in self.get_emailiter(data.get('content', '')):
-                    if email.get('email', None) is not None:
-                        es.index(index=Configuration.index_name + '_emails',
-                                 id=email['email'],
-                                 document={
-                                     **email,
-                                     **{
-                                         'indexing_date': data['indexing_date'],
-                                         'filename': data.get('filename', ''),
-                                         'path_real': data.get('path_real', ''),
-                                         'path_virtual': data.get('path_virtual', '')
-                                     }
-                                    }
-                                 )
 
                 es.index(index='.ctrl_' + Configuration.index_name, id=id, document={
                     k: v
